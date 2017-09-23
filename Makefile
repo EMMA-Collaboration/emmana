@@ -57,7 +57,7 @@ BINDIR      := $(PWD)/bin
 SRCEXT		:= cxx
 SRCS      	:= $(shell find $(SDIR) -type f -name *.$(SRCEXT))
 OBJS      	:= $(patsubst $(SDIR)/%, $(BUILD)/%, $(SRCS:.$(SRCEXT)=.o))
-HDRS      	:= $(patsubst $(SDIR)/%, $(HDIR)/%, $(SRCS:.$(SRCEXT)=.hxx))
+# HDRS      	:= $(patsubst $(SDIR)/%, $(HDIR)/%, $(SRCS:.$(SRCEXT)=.hxx))
 
 BIN         := $(BINDIR)/feemma.exe
 
@@ -78,7 +78,7 @@ $(BINDIR):
 $(BUILD)/%.o: $(SDIR)/%.cxx
 	$(CXX) $(CXXFLAGS) $(ROOTANAINC) -c -o $@ $<
 
-$(BIN): $(OBJS) | $(BIN)
+$(BIN): $(OBJS) | $(BINDIR)
 	$(CXX) -o $@ $(CXXFLAGS) $(ROOTANAINC) $^ $(ROOTANALIBS) $(MIDASLIBS) $(ROOTGLIBS) -lm -lz -lpthread -lssl -lutil
 
 dox:
