@@ -736,6 +736,7 @@ public:
                yt = earliest_times[20];
                yb = earliest_times[24];
                trig = earliest_times[28];
+	       trf = earliest_times[32];
 
                 multi_at = counts[0];
                 multi_am = counts[4];
