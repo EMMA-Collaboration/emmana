@@ -85,6 +85,6 @@ dox:
 	doxygen
 
 clean::
-	rm -f $(BUILD)/* $(BIN)/*
+	rm -f $(BUILD)/* $(BINDIR)/*
 
 # end
