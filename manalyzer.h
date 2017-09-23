@@ -15,42 +15,42 @@ class TARootHelper;
 
 class TARunInfo
 {
- public:
+public:
    int fRunNo;
    std::string fFileName;
    VirtualOdb* fOdb;
    TARootHelper* fRoot;
    std::vector<std::string> fArgs;
 
- public:
+public:
    TARunInfo(int runno, const char* filename, const std::vector<std::string>& args);
    ~TARunInfo();
 
- private:
+private:
    TARunInfo() {}; // hidden default constructor
 };
 
 class TAFlowEvent
 {
- public:
+public:
    TAFlowEvent* fNext;
 
- public:
+public:
    TAFlowEvent(TAFlowEvent*);
    virtual ~TAFlowEvent();
 
    template<class T> T* Find()
-      {
-         TAFlowEvent* f = this;
-         while (f) {
-            T *ptr = dynamic_cast<T*>(f);
-            if (ptr) return ptr;
-            f = f->fNext;
-         }
-         return NULL;
+   {
+      TAFlowEvent* f = this;
+      while (f) {
+         T *ptr = dynamic_cast<T*>(f);
+         if (ptr) return ptr;
+         f = f->fNext;
       }
+      return NULL;
+   }
 
- private:
+private:
    TAFlowEvent() {}; // hidden default constructor
 };
 
@@ -64,11 +64,11 @@ typedef int TAFlags;
 
 class TARunObject
 {
- public:
+public:
    TARunObject(TARunInfo* runinfo); // ctor
    virtual ~TARunObject() {}; // dtor
 
- public:
+public:
    virtual void BeginRun(TARunInfo* runinfo); // begin of run
    virtual void EndRun(TARunInfo* runinfo); // end of run
    virtual void NextSubrun(TARunInfo* runinfo); // next subrun file
@@ -82,20 +82,20 @@ class TARunObject
    virtual TAFlowEvent* AnalyzeFlowEvent(TARunInfo* runinfo, TAFlags* flags, TAFlowEvent* flow);
    virtual void AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event);
 
- private:
+private:
    TARunObject(); // hidden default constructor
 };
 
 class TAFactory
 {
- public:
+public:
    TAFactory() {}; // ctor
    virtual ~TAFactory() {}; // dtor
 
- public:
+public:
    virtual TARunObject* NewRunObject(TARunInfo* runinfo) = 0; // factory for Run objects
 
- public:
+public:
    virtual void Init(const std::vector<std::string> &args); // start of analysis
    virtual void Finish(); // end of analysis
 };
@@ -110,7 +110,7 @@ template<class T> class TAFactoryTemplate: public TAFactory
 
 class TARegister
 {
- public:
+public:
    TARegister(TAFactory* m);
    //static void Register(TAModuleInterface* m);
    //static std::vector<TAModuleInterface*>* fgModules;
@@ -128,18 +128,18 @@ class THttpServer;
 
 class TARootHelper
 {
- public:
+public:
    TFile* fOutputFile;
    static TDirectory*   fgDir;
    static TApplication* fgApp;
    static XmlServer*    fgXmlServer;
    static THttpServer*  fgHttpServer;
 
- public:
+public:
    TARootHelper(const TARunInfo*);
    ~TARootHelper(); // dtor
 
- private:
+private:
    TARootHelper() { }; // hidden default constructor
 };
 #endif

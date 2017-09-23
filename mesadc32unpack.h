@@ -4,7 +4,7 @@
 
 class mesadc32hit
 {
- public:
+public:
    int channel; // 5 bits
    int v; // 1 bit // overflow bit
    int adc_data; // 12 bits
@@ -12,7 +12,7 @@ class mesadc32hit
 
 class mesadc32event
 {
- public:
+public:
    bool error;
 
    // event header word
@@ -21,11 +21,11 @@ class mesadc32event
 
    // end of event word
    int time_stamp; // 30 bits
-   
+
    // data words (hits)
    std::vector<mesadc32hit> hits;
-   
- public:
+
+public:
    mesadc32event(); // ctor
    void Print() const;
 };

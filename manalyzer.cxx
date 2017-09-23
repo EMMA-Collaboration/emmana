@@ -282,9 +282,9 @@ public:
 #if 0
 static double GetTimeSec()
 {
-  struct timeval tv;
-  gettimeofday(&tv,NULL);
-  return tv.tv_sec + 0.000001*tv.tv_usec;
+   struct timeval tv;
+   gettimeofday(&tv,NULL);
+   return tv.tv_sec + 0.000001*tv.tv_usec;
 }
 #endif
 
@@ -715,21 +715,21 @@ static bool gEnableShowMem = false;
 #if 0
 static int ShowMem(const char* label)
 {
-  if (!gEnableShowMem)
-    return 0;
+   if (!gEnableShowMem)
+      return 0;
 
-  FILE* fp = fopen("/proc/self/statm","r");
-  if (!fp)
-    return 0;
+   FILE* fp = fopen("/proc/self/statm","r");
+   if (!fp)
+      return 0;
 
-  int mem = 0;
-  fscanf(fp,"%d",&mem);
-  fclose(fp);
+   int mem = 0;
+   fscanf(fp,"%d",&mem);
+   fclose(fp);
 
-  if (label)
-    printf("memory at %s is %d\n", label, mem);
+   if (label)
+      printf("memory at %s is %d\n", label, mem);
 
-  return mem;
+   return mem;
 }
 #endif
 
@@ -1242,28 +1242,31 @@ public:
 
 static void help()
 {
-  printf("\nUsage:\n");
-  printf("\n./analyzer.exe [-h] [-R8081] [-oOutputfile.mid] [file1 file2 ...] [-- arguments passed to modules ...]\n");
-  printf("\n");
-  printf("\t-h: print this help message\n");
-  printf("\t-Hhostname: connect to MIDAS experiment on given host\n");
-  printf("\t-Eexptname: connect to this MIDAS experiment\n");
-  printf("\t-oOutputfile.mid: write selected events into this file\n");
-  printf("\t-Rnnnn: Start the ROOT THttpServer HTTP server on specified tcp port, access by firefox http://localhost:8081\n");
-  printf("\t-Xnnnn: Start the Xml server on specified tcp port (for use with roody -Xlocalhost:9091)\n");
-  printf("\t-Pnnnn: Start the TNetDirectory server on specified tcp port (for use with roody -Plocalhost:9091)\n");
-  printf("\t-eNNN: Number of events to analyze\n");
-  printf("\t-sNNN: Number of events to skip before starting analysis\n");
-  printf("\t--dump: activate the event dump module\n");
-  printf("\t-t: Enable tracing of constructors, destructors and function calls\n");
-  printf("\t-m: Enable memory leak debugging\n");
-  printf("\t-g: Enable graphics display when processing data files\n");
-  printf("\t-i: Enable intractive mode\n");
-  printf("\t--: All following arguments are passed to the analyzer modules Init() method\n");
-  printf("\n");
-  printf("Example1: analyze online data: ./analyzer.exe -P9091\n");
-  printf("Example2: analyze existing data: ./analyzer.exe /data/alpha/current/run00500.mid\n");
-  exit(1);
+   printf("\nUsage:\n");
+   printf("\n./analyzer.exe [-h] [-R8081] [-oOutputfile.mid] [file1 file2 ...] [-- arguments passed to modules ...]\n");
+   printf("\n");
+   printf("   -h                  - print this help message\n");
+   printf("   -H <hostname>       - connect to MIDAS experiment on given host\n");
+   printf("   -E <exptname>       - connect to this MIDAS experiment\n");
+   printf("   -o <Outputfile.mid> - write to this file\n");
+   printf("   -R <nnnn>           - Start the ROOT THttpServer HTTP server on specified tcp port,\n");
+   printf("                         access by firefox http://localhost:8081\n");
+   printf("   -X <nnnn>           - Start the Xml server on specified tcp port\n");
+   printf("                         (for use with roody -Xlocalhost:9091)\n");
+   printf("   -P <nnnn>           - Start the TNetDirectory server on specified tcp port\n");
+   printf("                         (for use with roody -Plocalhost:9091)\n");
+   printf("   -e <NNN>            - Number of events to analyze\n");
+   printf("   -s <NNN>            - Number of events to skip before starting analysis\n");
+   printf("   -t                  - Enable tracing of constructors, destructors and function calls\n");
+   printf("   -m                  - Enable memory leak debugging\n");
+   printf("   -g                  - Enable graphics display when processing data files\n");
+   printf("   -i                  - Enable intractive mode\n");
+   printf("   --dump              - activate the event dump module\n");
+   printf("   --                  - All following arguments are passed to the analyzer modules Init() method\n");
+   printf("\n");
+   printf("   Example1            - analyze online data   :\t ./analyzer.exe -P9091\n");
+   printf("   Example2            - analyze existing data :\t ./analyzer.exe /data/alpha/current/run00500.mid\n");
+   exit(1);
 }
 
 // Main function call
