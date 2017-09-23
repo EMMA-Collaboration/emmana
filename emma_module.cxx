@@ -111,6 +111,7 @@ public:
    Double_t AMenergy;
    Double_t ABenergy;
    Double_t PGACenergy;
+   Double_t trf;
 
    Int_t multi_at;
    Int_t multi_am;
@@ -863,6 +864,7 @@ public:
         t1->Branch("ABenergy",&ABenergy,"ABenergy/D");
         t1->Branch("PGACenergy",&PGACenergy,"PGACenergy/D");
         t1->Branch("Sienergy",&Sienergy,"Sienergy/D");
+	t1->Branch("trf",&trf,"trf/D");
    }
 
    void EndRun(TARunInfo* runinfo)
