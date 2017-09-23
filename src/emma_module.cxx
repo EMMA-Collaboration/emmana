@@ -1,31 +1,10 @@
-//
-// EMMA analyzer
-//
+///
+/// \file emma_module.cxx
+/// \authors M. Williams, D. Connolly
+/// \brief implements emma_module.hxx
+///
 
-#include "manalyzer.h"
-#include "midasio.h"
-
-#include <assert.h> // assert()
-
-#include "TCanvas.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#include "TProfile.h"
-#include "TMath.h"
-#include "TTree.h"
-#include "TBranch.h"
-
-#include "v1190unpack.h"
-#include "mesadc32unpack.h"
-#include "Alpha16.h"
-
-#define DELETE(p) if (p) { delete(p); (p)=NULL; }
-
-struct EmmaConfig
-{
-   bool fVerboseV1190 = false;
-   bool fVerboseMesadc32 = false;
-};
+#include "emma_module.h"
 
 class EmmaModule: public TARunObject
 {
@@ -1116,43 +1095,31 @@ public:
    }
 };
 
-class EmmaModuleFactory: public TAFactory
-{
-public:
-   EmmaConfig* fConfig = new EmmaConfig;
 
-public:
-   void Init(const std::vector<std::string> &args)
-   {
-      printf("Init!\n");
+void EmmaModuleFactory::Init(const std::vector<std::string> &args){
+   printf("Init!\n");
 
-      for (unsigned i=0; i<args.size(); i++) {
-         if (args[i] == "--verbose-v1190")
-            fConfig->fVerboseV1190 = true;
-      }
-
-      TARootHelper::fgDir->cd(); // select correct ROOT directory
+   for (unsigned i=0; i<args.size(); i++) {
+      if (args[i] == "--verbose-v1190")
+         fConfig->fVerboseV1190 = true;
    }
 
-   void Finish()
-   {
-      printf("Finish!\n");
-   }
+   TARootHelper::fgDir->cd(); // select correct ROOT directory
+}
 
-   TARunObject* NewRunObject(TARunInfo* runinfo)
-   {
-      printf("NewRun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
-      return new EmmaModule(runinfo, fConfig);
-   }
-};
+void EmmaModuleFactory::Finish() {
+   printf("Finish!\n");
+}
+
+TARunObject* EmmaModuleFactory::NewRunObject(TARunInfo* runinfo) {
+   printf("NewRun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
+   return new EmmaModule(runinfo, fConfig);
+}
 
 
-TARegister tarm(new EmmaModuleFactory);
-
-/* emacs
- * Local Variables:
- * tab-width: 8
- * c-basic-offset: 3
- * indent-tabs-mode: nil
- * End:
- */
+// emacs
+// Local Variables:
+// tab-width: 8
+// c-basic-offset: 3
+// indent-tabs-mode: nil
+// End:
