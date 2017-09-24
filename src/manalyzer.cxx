@@ -1,11 +1,9 @@
-//
-// MIDAS analyzer
-//
-// K.Olchanski
-//
-
-#include <stdio.h>
-#include <assert.h>
+/// EMMA MIDAS analyzer
+///
+/// \file: manalyzer.cxx
+/// \author K.Olchanski, D. Connolly
+/// \brief implementation of manalyzer.h
+///
 
 #include "manalyzer.h"
 #include "midasio.h"
@@ -160,7 +158,6 @@ void TAFactory::Finish()
       printf("TAFactory::Finish!\n");
 }
 
-#ifdef HAVE_ROOT
 
 //////////////////////////////////////////////////////////
 //
@@ -168,14 +165,6 @@ void TAFactory::Finish()
 //
 //////////////////////////////////////////////////////////
 
-#ifdef HAVE_XMLSERVER
-#include "xmlServer.h"
-#include "TROOT.h"
-#endif
-
-#ifdef XHAVE_LIBNETDIRECTORY
-#include "netDirectoryServer.h"
-#endif
 
 TApplication* TARootHelper::fgApp = NULL;
 TDirectory*   TARootHelper::fgDir = NULL;
@@ -221,30 +210,6 @@ TARootHelper::~TARootHelper() // dtor
       fgDir->cd();
 }
 
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/time.h>
-#include <assert.h>
-#include <signal.h>
-
-#include "manalyzer.h"
-#include "midasio.h"
-
-#ifdef HAVE_ROOT_XML
-#include "XmlOdb.h"
-#endif
-
-#ifdef HAVE_THTTP_SERVER
-#include "THttpServer.h"
-#endif
-
-#ifdef HAVE_ROOT
-#include <TSystem.h>
-#endif
-
 //////////////////////////////////////////////////////////
 //
 // Methods of TARegister
@@ -260,25 +225,6 @@ TARegister::TARegister(TAFactory* m)
    gModules->push_back(m);
 }
 
-//////////////////////////////////////////////////////////
-//
-// Methods of EmptyOdb
-//
-//////////////////////////////////////////////////////////
-
-class EmptyOdb: public VirtualOdb
-{
-public:
-   int      odbReadArraySize(const char*name) { return 0; }
-   int      odbReadAny(   const char*name, int index, int tid,void* buf, int bufsize = 0) { return 0; };
-   int      odbReadInt(   const char*name, int index = 0, int      defaultValue = 0) { return defaultValue; }
-   uint32_t odbReadUint32(const char*name, int index = 0, uint32_t defaultValue = 0) { return defaultValue; }
-   float     odbReadFloat(const char*name, int index = 0, float   defaultValue = 0) { return defaultValue; }
-   double   odbReadDouble(const char*name, int index = 0, double   defaultValue = 0) { return defaultValue; }
-   bool     odbReadBool(  const char*name, int index = 0, bool     defaultValue = false) { return defaultValue; }
-   const char* odbReadString(const char*name, int index = 0,const char* defaultValue = NULL) { return defaultValue; }
-};
-
 #if 0
 static double GetTimeSec()
 {
@@ -288,221 +234,195 @@ static double GetTimeSec()
 }
 #endif
 
-class RunHandler
-{
-public:
-   TARunInfo* fRunInfo;
-   std::vector<TARunObject*> fRunRun;
-   std::vector<std::string>  fArgs;
+RunHandler::RunHandler(const std::vector<std::string>& args) { // ctor
+   fRunInfo = NULL;
+   fArgs = args;
+}
 
-   RunHandler(const std::vector<std::string>& args) // ctor
-   {
-      fRunInfo = NULL;
-      fArgs = args;
-   }
-
-   ~RunHandler() // dtor
-   {
-      if (fRunInfo) {
-         delete fRunInfo;
-         fRunInfo = NULL;
-      }
-   }
-
-   void CreateRun(int run_number, const char* file_name)
-   {
-      assert(fRunInfo == NULL);
-      assert(fRunRun.size() == 0);
-
-      fRunInfo = new TARunInfo(run_number, file_name, fArgs);
-
-      for (unsigned i=0; i<(*gModules).size(); i++)
-         fRunRun.push_back((*gModules)[i]->NewRunObject(fRunInfo));
-   }
-
-   void BeginRun()
-   {
-      assert(fRunInfo != NULL);
-      assert(fRunInfo->fOdb != NULL);
-      for (unsigned i=0; i<fRunRun.size(); i++)
-         fRunRun[i]->BeginRun(fRunInfo);
-   }
-
-   void EndRun()
-   {
-      assert(fRunInfo);
-
-      std::deque<TAFlowEvent*> flow_queue;
-
-      for (unsigned i=0; i<fRunRun.size(); i++)
-         fRunRun[i]->PreEndRun(fRunInfo, &flow_queue);
-
-      while (!flow_queue.empty()) {
-         TAFlowEvent* flow = flow_queue.front();
-         flow_queue.pop_front();
-
-         int flags = 0;
-
-         for (unsigned i=0; i<fRunRun.size(); i++) {
-            flow = fRunRun[i]->AnalyzeFlowEvent(fRunInfo, &flags, flow);
-            if (flags & TAFlag_SKIP)
-               break;
-         }
-
-         delete flow;
-      }
-
-      for (unsigned i=0; i<fRunRun.size(); i++)
-         fRunRun[i]->EndRun(fRunInfo);
-   }
-
-   void NextSubrun()
-   {
-      assert(fRunInfo);
-
-      for (unsigned i=0; i<fRunRun.size(); i++)
-         fRunRun[i]->NextSubrun(fRunInfo);
-   }
-
-   void DeleteRun()
-   {
-      assert(fRunInfo);
-
-      for (unsigned i=0; i<fRunRun.size(); i++) {
-         delete fRunRun[i];
-         fRunRun[i] = NULL;
-      }
-
-      fRunRun.clear();
-      assert(fRunRun.size() == 0);
-
+RunHandler::~RunHandler() {//dtor
+   if (fRunInfo) {
       delete fRunInfo;
       fRunInfo = NULL;
    }
+}
 
-   void AnalyzeSpecialEvent(TMEvent* event)
-   {
-      for (unsigned i=0; i<fRunRun.size(); i++)
-         fRunRun[i]->AnalyzeSpecialEvent(fRunInfo, event);
-   }
+void RunHandler::CreateRun(int run_number, const char* file_name) {
+   assert(fRunInfo == NULL);
+   assert(fRunRun.size() == 0);
 
-   void AnalyzeEvent(TMEvent* event, TAFlags* flags, TMWriterInterface *writer)
-   {
-      assert(fRunInfo != NULL);
-      assert(fRunInfo->fOdb != NULL);
+   fRunInfo = new TARunInfo(run_number, file_name, fArgs);
 
-      TAFlowEvent* flow = NULL;
+   for (unsigned i=0; i<(*gModules).size(); i++)
+      fRunRun.push_back((*gModules)[i]->NewRunObject(fRunInfo));
+}
+
+void RunHandler::BeginRun()
+{
+   assert(fRunInfo != NULL);
+   assert(fRunInfo->fOdb != NULL);
+   for (unsigned i=0; i<fRunRun.size(); i++)
+      fRunRun[i]->BeginRun(fRunInfo);
+}
+
+void RunHandler::EndRun()
+{
+   assert(fRunInfo);
+
+   std::deque<TAFlowEvent*> flow_queue;
+
+   for (unsigned i=0; i<fRunRun.size(); i++)
+      fRunRun[i]->PreEndRun(fRunInfo, &flow_queue);
+
+   while (!flow_queue.empty()) {
+      TAFlowEvent* flow = flow_queue.front();
+      flow_queue.pop_front();
+
+      int flags = 0;
 
       for (unsigned i=0; i<fRunRun.size(); i++) {
-         flow = fRunRun[i]->Analyze(fRunInfo, event, flags, flow);
-         if (*flags & TAFlag_SKIP)
+         flow = fRunRun[i]->AnalyzeFlowEvent(fRunInfo, &flags, flow);
+         if (flags & TAFlag_SKIP)
             break;
       }
 
-      if (flow && !(*flags & TAFlag_SKIP)) {
-         for (unsigned i=0; i<fRunRun.size(); i++) {
-            flow = fRunRun[i]->AnalyzeFlowEvent(fRunInfo, flags, flow);
-            if (*flags & TAFlag_SKIP)
-               break;
-         }
-      }
-
-      if (*flags & TAFlag_WRITE)
-         if (writer)
-            TMWriteEvent(writer, event);
-
-      if (flow)
-         delete flow;
+      delete flow;
    }
-};
 
-#ifdef HAVE_MIDAS
+   for (unsigned i=0; i<fRunRun.size(); i++)
+      fRunRun[i]->EndRun(fRunInfo);
+}
 
-#include "TMidasOnline.h"
-
-#ifdef HAVE_ROOT
-#include "TSystem.h"
-#endif
-
-class OnlineHandler: public TMHandlerInterface
+void RunHandler::NextSubrun()
 {
-public:
-   RunHandler fRun;
-   int fNumAnalyze;
-   TMWriterInterface* fWriter;
-   bool fQuit;
+   assert(fRunInfo);
 
-   OnlineHandler(int num_analyze, TMWriterInterface* writer, const std::vector<std::string>& args) // ctor
-      : fRun(args)
-   {
-      fQuit = false;
-      fNumAnalyze = num_analyze;
-      fWriter = writer;
+   for (unsigned i=0; i<fRunRun.size(); i++)
+      fRunRun[i]->NextSubrun(fRunInfo);
+}
+
+void RunHandler::DeleteRun()
+{
+   assert(fRunInfo);
+
+   for (unsigned i=0; i<fRunRun.size(); i++) {
+      delete fRunRun[i];
+      fRunRun[i] = NULL;
    }
 
-   ~OnlineHandler() // dtor
-   {
-      fWriter = NULL;
+   fRunRun.clear();
+   assert(fRunRun.size() == 0);
+
+   delete fRunInfo;
+   fRunInfo = NULL;
+}
+
+void RunHandler::AnalyzeSpecialEvent(TMEvent* event)
+{
+   for (unsigned i=0; i<fRunRun.size(); i++)
+      fRunRun[i]->AnalyzeSpecialEvent(fRunInfo, event);
+}
+
+void RunHandler::AnalyzeEvent(TMEvent* event, TAFlags* flags, TMWriterInterface *writer)
+{
+   assert(fRunInfo != NULL);
+   assert(fRunInfo->fOdb != NULL);
+
+   TAFlowEvent* flow = NULL;
+
+   for (unsigned i=0; i<fRunRun.size(); i++) {
+      flow = fRunRun[i]->Analyze(fRunInfo, event, flags, flow);
+      if (*flags & TAFlag_SKIP)
+         break;
    }
 
-   void StartRun(int run_number)
-   {
-      fRun.CreateRun(run_number, NULL);
-      fRun.fRunInfo->fOdb = TMidasOnline::instance();
-      fRun.BeginRun();
+   if (flow && !(*flags & TAFlag_SKIP)) {
+      for (unsigned i=0; i<fRunRun.size(); i++) {
+         flow = fRunRun[i]->AnalyzeFlowEvent(fRunInfo, flags, flow);
+         if (*flags & TAFlag_SKIP)
+            break;
+      }
    }
 
-   void Transition(int transition, int run_number, int transition_time)
-   {
-      //printf("OnlineHandler::Transtion: transition %d, run %d, time %d\n", transition, run_number, transition_time);
+   if (*flags & TAFlag_WRITE)
+      if (writer)
+         TMWriteEvent(writer, event);
 
-      if (transition == TR_START) {
-         if (fRun.fRunInfo) {
-            fRun.EndRun();
-            fRun.fRunInfo->fOdb = NULL;
-            fRun.DeleteRun();
-         }
-         assert(fRun.fRunInfo == NULL);
+   if (flow)
+      delete flow;
+}
 
-         StartRun(run_number);
-         printf("Begin run: %d\n", run_number);
-      } else if (transition == TR_STOP) {
+
+
+OnlineHandler::OnlineHandler(int num_analyze, TMWriterInterface* writer, const std::vector<std::string>& args) // ctor
+   : fRun(args)
+{
+   fQuit = false;
+   fNumAnalyze = num_analyze;
+   fWriter = writer;
+}
+
+OnlineHandler::~OnlineHandler() // dtor
+{
+   fWriter = NULL;
+}
+
+void OnlineHandler::StartRun(int run_number)
+{
+   fRun.CreateRun(run_number, NULL);
+   fRun.fRunInfo->fOdb = TMidasOnline::instance();
+   fRun.BeginRun();
+}
+
+void OnlineHandler::Transition(int transition, int run_number, int transition_time)
+{
+   //printf("OnlineHandler::Transtion: transition %d, run %d, time %d\n", transition, run_number, transition_time);
+
+   if (transition == TR_START) {
+      if (fRun.fRunInfo) {
          fRun.EndRun();
          fRun.fRunInfo->fOdb = NULL;
          fRun.DeleteRun();
-         printf("End of run %d\n", run_number);
       }
+      assert(fRun.fRunInfo == NULL);
+
+      StartRun(run_number);
+      printf("Begin run: %d\n", run_number);
+   } else if (transition == TR_STOP) {
+      fRun.EndRun();
+      fRun.fRunInfo->fOdb = NULL;
+      fRun.DeleteRun();
+      printf("End of run %d\n", run_number);
+   }
+}
+
+void OnlineHandler::Event(const void* data, int data_size)
+{
+   //printf("OnlineHandler::Event: ptr %p, size %d\n", data, data_size);
+
+   if (!fRun.fRunInfo) {
+      StartRun(0); // start fake run for events outside of a run
    }
 
-   void Event(const void* data, int data_size)
-   {
-      //printf("OnlineHandler::Event: ptr %p, size %d\n", data, data_size);
+   TMEvent* event = new TMEvent(data, data_size);
 
-      if (!fRun.fRunInfo) {
-         StartRun(0); // start fake run for events outside of a run
-      }
+   TAFlags flags = 0;
 
-      TMEvent* event = new TMEvent(data, data_size);
+   fRun.AnalyzeEvent(event, &flags, fWriter);
 
-      TAFlags flags = 0;
+   if (flags & TAFlag_QUIT)
+      fQuit = true;
 
-      fRun.AnalyzeEvent(event, &flags, fWriter);
-
-      if (flags & TAFlag_QUIT)
+   if (fNumAnalyze > 0) {
+      fNumAnalyze--;
+      if (fNumAnalyze == 0)
          fQuit = true;
-
-      if (fNumAnalyze > 0) {
-         fNumAnalyze--;
-         if (fNumAnalyze == 0)
-            fQuit = true;
-      }
-
-      if (event) {
-         delete event;
-         event = NULL;
-      }
    }
-};
+
+   if (event) {
+      delete event;
+      event = NULL;
+   }
+}
 
 static int ProcessMidasOnline(const std::vector<std::string>& args, const char* hostname, const char* exptname, int num_analyze, TMWriterInterface* writer)
 {
@@ -562,8 +482,6 @@ static int ProcessMidasOnline(const std::vector<std::string>& args, const char* 
 
    return 0;
 }
-
-#endif
 
 static int ProcessMidasFiles(const std::vector<std::string>& files, const std::vector<std::string>& args, int num_skip, int num_analyze, TMWriterInterface* writer)
 {
@@ -733,512 +651,426 @@ static int ShowMem(const char* label)
 }
 #endif
 
-class EventDumpModule: public TARunObject
+// ==================== EventDumpModule Methods ==================== //
+
+EventDumpModule::EventDumpModule(TARunInfo* runinfo)
+   : TARunObject(runinfo)
 {
-public:
-   EventDumpModule(TARunInfo* runinfo)
-      : TARunObject(runinfo)
-   {
-      if (gTrace)
-         printf("EventDumpModule::ctor, run %d\n", runinfo->fRunNo);
+   if (gTrace)
+      printf("EventDumpModule::ctor, run %d\n", runinfo->fRunNo);
+}
+
+EventDumpModule::~EventDumpModule()
+{
+   if (gTrace)
+      printf("EventDumpModule::dtor!\n");
+}
+
+void EventDumpModule::BeginRun(TARunInfo* runinfo)
+{
+   printf("EventDumpModule::BeginRun, run %d\n", runinfo->fRunNo);
+}
+
+void EventDumpModule::EndRun(TARunInfo* runinfo)
+{
+   printf("EventDumpModule::EndRun, run %d\n", runinfo->fRunNo);
+}
+
+void EventDumpModule::NextSubrun(TARunInfo* runinfo)
+{
+   printf("EventDumpModule::NextSubrun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
+}
+
+void EventDumpModule::PauseRun(TARunInfo* runinfo)
+{
+   printf("EventDumpModule::PauseRun, run %d\n", runinfo->fRunNo);
+}
+
+void EventDumpModule::ResumeRun(TARunInfo* runinfo)
+{
+   printf("EventDumpModule::ResumeRun, run %d\n", runinfo->fRunNo);
+}
+
+TAFlowEvent* EventDumpModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow)
+{
+   printf("EventDumpModule::Analyze, run %d, ", runinfo->fRunNo);
+   event->FindAllBanks();
+   std::string h = event->HeaderToString();
+   std::string b = event->BankListToString();
+   printf("%s: %s\n", h.c_str(), b.c_str());
+   return flow;
+}
+
+void EventDumpModule::AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event)
+{
+   printf("EventDumpModule::AnalyzeSpecialEvent, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
+}
+
+void EventDumpModuleFactory::Init(const std::vector<std::string> &args)
+{
+   if (gTrace)
+      printf("EventDumpModuleFactory::Init!\n");
+}
+
+void EventDumpModuleFactory::Finish()
+{
+   if (gTrace)
+      printf("EventDumpModuleFactory::Finish!\n");
+}
+
+TARunObject* EventDumpModuleFactory::NewRunObject(TARunInfo* runinfo)
+{
+   if (gTrace)
+      printf("EventDumpModuleFactory::NewRunObject, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
+   return new EventDumpModule(runinfo);
+}
+
+// ==================== XButton Methods ==================== //
+
+XButton::XButton(TGWindow*p, const char* text, XCtrl* ctrl, int value): TGTextButton(p, text)
+{
+   fCtrl = ctrl;
+   fValue = value;
+}
+
+void XButton::Clicked()
+{
+   //printf("Clicked button %s, value %d!\n", GetString().Data(), fValue);
+   if (fCtrl)
+      fCtrl->fValue = fValue;
+   //gSystem->ExitLoop();
+}
+
+
+// ==================== MainWindow Methods ==================== //
+
+MainWindow::MainWindow(const TGWindow*w, int s1, int s2, XCtrl* ctrl): TGMainFrame(w, s1, s2)
+{
+   if (gTrace)
+      printf("MainWindow::ctor!\n");
+
+   fCtrl = ctrl;
+   //SetCleanup(kDeepCleanup);
+
+   SetWindowName("ROOT Analyzer Control");
+
+   // layout the gui
+   fMenu = new TGPopupMenu(gClient->GetRoot());
+   fMenu->AddEntry("New TBrowser", CTRL_TBROWSER);
+   fMenu->AddEntry("-", 0);
+   fMenu->AddEntry("Next",     CTRL_NEXT);
+   fMenu->AddEntry("Continue", CTRL_CONTINUE);
+   fMenu->AddEntry("Pause",    CTRL_PAUSE);
+   fMenu->AddEntry("-", 0);
+   fMenu->AddEntry("Quit",     CTRL_QUIT);
+
+   menuBarItemLayout = new TGLayoutHints(kLHintsTop|kLHintsLeft, 0, 4, 0, 0);
+
+   fMenu->Associate(this);
+
+   fMenuBar = new TGMenuBar(this, 1, 1, kRaisedFrame);
+   fMenuBar->AddPopup("&Rootana", fMenu, menuBarItemLayout);
+   fMenuBar->Layout();
+
+   menuBarLayout = new TGLayoutHints(kLHintsTop|kLHintsLeft|kLHintsExpandX);
+   AddFrame(fMenuBar, menuBarLayout);
+
+   // Create a container frames containing buttons
+
+   // one button is resized up to the parent width.
+   // Note! this width should be fixed!
+   TGVerticalFrame *hframe1 = new TGVerticalFrame(this, 170, 50, kFixedWidth);
+
+   // to take whole space we need to use kLHintsExpandX layout hints
+   hframe1->AddFrame(new XButton(hframe1, "&Next ", ctrl, CTRL_NEXT),
+                     new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
+   AddFrame(hframe1, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
+
+   // two buttons are resized up to the parent width.
+   // Note! this width should be fixed!
+   TGCompositeFrame *cframe1 = new TGCompositeFrame(this, 170, 20, kHorizontalFrame | kFixedWidth);
+
+   // to share whole parent space we need to use kLHintsExpandX layout hints
+   cframe1->AddFrame(new XButton(cframe1, "&Continue", ctrl, CTRL_CONTINUE),
+                     new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 2, 2, 2));
+
+   cframe1->AddFrame(new XButton(cframe1, "&Pause", ctrl, CTRL_PAUSE),
+                     new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 2, 2, 2));
+
+   AddFrame(cframe1, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
+
+   // three buttons are resized up to the parent width.
+   // Note! this width should be fixed!
+   TGCompositeFrame *cframe2 = new TGCompositeFrame(this, 170, 20, kHorizontalFrame | kFixedWidth);
+
+#if 0
+   TGButton* ok = new XButton(cframe2, "OK", ctrl, 0);
+   // to share whole parent space we need to use kLHintsExpandX layout hints
+   cframe2->AddFrame(ok, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
+
+   TGButton* cancel = new XButton(cframe2, "Cancel ", ctrl, 0);
+   cframe2->AddFrame(cancel, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
+#endif
+
+   cframe2->AddFrame(new XButton(cframe2, "&Quit ", ctrl, CTRL_QUIT),
+                     new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
+
+   AddFrame(cframe2, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
+
+   MapSubwindows();
+   Layout();
+   MapWindow();
+}
+
+MainWindow::~MainWindow() // dtor // Closing the control window closes the whole program
+{
+   if (gTrace)
+      printf("MainWindow::dtor!\n");
+
+   delete fMenu;
+   delete fMenuBar;
+   delete menuBarLayout;
+   delete menuBarItemLayout;
+}
+
+void MainWindow::CloseWindow()
+{
+   if (gTrace)
+      printf("MainWindow::CloseWindow()\n");
+
+   if (fCtrl)
+      fCtrl->fValue = CTRL_QUIT;
+   //gSystem->ExitLoop();
+}
+
+Bool_t MainWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
+{
+   //printf("GUI Message %d %d %d\n",(int)msg,(int)parm1,(int)parm2);
+   switch (GET_MSG(msg))
+      {
+      default:
+         break;
+      case kC_COMMAND:
+         switch (GET_SUBMSG(msg))
+            {
+            default:
+               break;
+            case kCM_MENU:
+               //printf("parm1 %d\n", (int)parm1);
+               switch (parm1)
+                  {
+                  case CTRL_TBROWSER:
+                     new TBrowser();
+                     break;
+                  default:
+                     //printf("Control %d!\n", (int)parm1);
+                     if (fCtrl)
+                        fCtrl->fValue = parm1;
+                     //gSystem->ExitLoop();
+                     break;
+                  }
+               break;
+            }
+         break;
+      }
+
+   return kTRUE;
+}
+
+// ==================== InteractiveModule Methods ==================== //
+
+InteractiveModule::InteractiveModule(TARunInfo* runinfo)
+   : TARunObject(runinfo)
+{
+   if (gTrace)
+      printf("InteractiveModule::ctor, run %d\n", runinfo->fRunNo);
+   fContinue = false;
+   fSkip = 0;
+#ifdef HAVE_ROOT
+   if (!fgCtrl)
+      fgCtrl = new XCtrl;
+   if (!fgCtrlWindow && runinfo->fRoot->fgApp) {
+      fgCtrlWindow = new MainWindow(gClient->GetRoot(), 200, 300, fgCtrl);
+   }
+#endif
+}
+
+InteractiveModule::~InteractiveModule()
+{
+   if (gTrace)
+      printf("InteractiveModule::dtor!\n");
+}
+
+void InteractiveModule::EndRun(TARunInfo* runinfo)
+{
+   printf("InteractiveModule::EndRun, run %d\n", runinfo->fRunNo);
+
+#ifdef HAVE_ROOT
+   if (fgCtrlWindow && runinfo->fRoot->fgApp) {
+      while (1) {
+#ifdef HAVE_THTTP_SERVER
+         if (TARootHelper::fgHttpServer) {
+            TARootHelper::fgHttpServer->ProcessRequests();
+         }
+#endif
+#ifdef HAVE_ROOT
+         if (TARootHelper::fgApp) {
+            gSystem->DispatchOneEvent(kTRUE);
+         }
+#endif
+#ifdef HAVE_MIDAS
+         if (!TMidasOnline::instance()->sleep(10)) {
+            // FIXME: indicate that we should exit the analyzer
+            return;
+         }
+#else
+         gSystem->Sleep(10);
+#endif
+
+         int ctrl = fgCtrl->fValue;
+         fgCtrl->fValue = 0;
+
+         switch (ctrl) {
+         case CTRL_QUIT:
+            return;
+         case CTRL_NEXT:
+            return;
+         case CTRL_CONTINUE:
+            return;
+         }
+      }
+   }
+#endif
+}
+
+TAFlowEvent* InteractiveModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow)
+{
+   printf("InteractiveModule::Analyze, run %d, %s\n", runinfo->fRunNo, event->HeaderToString().c_str());
+
+#ifdef HAVE_ROOT
+   if (fgCtrl->fValue == CTRL_QUIT) {
+      *flags |= TAFlag_QUIT;
+      return flow;
+   } else if (fgCtrl->fValue == CTRL_PAUSE) {
+      fContinue = false;
+   }
+#endif
+
+   if (fContinue && !(*flags & TAFlag_DISPLAY)) {
+      return flow;
+   } else {
+      fContinue = false;
    }
 
-   ~EventDumpModule()
-   {
-      if (gTrace)
-         printf("EventDumpModule::dtor!\n");
-   }
-
-   void BeginRun(TARunInfo* runinfo)
-   {
-      printf("EventDumpModule::BeginRun, run %d\n", runinfo->fRunNo);
-   }
-
-   void EndRun(TARunInfo* runinfo)
-   {
-      printf("EventDumpModule::EndRun, run %d\n", runinfo->fRunNo);
-   }
-
-   void NextSubrun(TARunInfo* runinfo)
-   {
-      printf("EventDumpModule::NextSubrun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
-   }
-
-   void PauseRun(TARunInfo* runinfo)
-   {
-      printf("EventDumpModule::PauseRun, run %d\n", runinfo->fRunNo);
-   }
-
-   void ResumeRun(TARunInfo* runinfo)
-   {
-      printf("EventDumpModule::ResumeRun, run %d\n", runinfo->fRunNo);
-   }
-
-   TAFlowEvent* Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow)
-   {
-      printf("EventDumpModule::Analyze, run %d, ", runinfo->fRunNo);
-      event->FindAllBanks();
-      std::string h = event->HeaderToString();
-      std::string b = event->BankListToString();
-      printf("%s: %s\n", h.c_str(), b.c_str());
+   if (fSkip > 0) {
+      fSkip--;
       return flow;
    }
 
-   void AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event)
-   {
-      printf("EventDumpModule::AnalyzeSpecialEvent, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
-   }
-};
-
-class EventDumpModuleFactory: public TAFactory
-{
-public:
-
-   void Init(const std::vector<std::string> &args)
-   {
-      if (gTrace)
-         printf("EventDumpModuleFactory::Init!\n");
-   }
-
-   void Finish()
-   {
-      if (gTrace)
-         printf("EventDumpModuleFactory::Finish!\n");
-   }
-
-   TARunObject* NewRunObject(TARunInfo* runinfo)
-   {
-      if (gTrace)
-         printf("EventDumpModuleFactory::NewRunObject, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
-      return new EventDumpModule(runinfo);
-   }
-};
-
 #ifdef HAVE_ROOT
-#include <TGMenu.h>
-#include <TGButton.h>
-#include <TBrowser.h>
-
-#define CTRL_QUIT 1
-#define CTRL_NEXT 2
-#define CTRL_CONTINUE 3
-#define CTRL_PAUSE    4
-
-#define CTRL_TBROWSER 11
-
-class XCtrl
-{
-public:
-   int fValue;
-
-   XCtrl() // ctor
-   {
-      fValue = 0;
-   }
-};
-
-class XButton: public TGTextButton
-{
-public:
-   XCtrl* fCtrl;
-   int    fValue;
-
-   XButton(TGWindow*p, const char* text, XCtrl* ctrl, int value) // ctor
-      : TGTextButton(p, text)
-   {
-      fCtrl = ctrl;
-      fValue = value;
-   }
-
-#if 0
-   void Pressed()
-   {
-      printf("Pressed!\n");
-   }
-
-   void Released()
-   {
-      printf("Released!\n");
-   }
-#endif
-
-   void Clicked()
-   {
-      //printf("Clicked button %s, value %d!\n", GetString().Data(), fValue);
-      if (fCtrl)
-         fCtrl->fValue = fValue;
-      //gSystem->ExitLoop();
-   }
-};
-
-class MainWindow: public TGMainFrame
-{
-private:
-   TGPopupMenu*		fMenu;
-   TGMenuBar*		fMenuBar;
-   TGLayoutHints*	menuBarLayout;
-   TGLayoutHints*	menuBarItemLayout;
-
-public:
-   XCtrl* fCtrl;
-
-public:
-   MainWindow(const TGWindow*w, int s1, int s2, XCtrl* ctrl) // ctor
-      : TGMainFrame(w, s1, s2)
-   {
-      if (gTrace)
-         printf("MainWindow::ctor!\n");
-
-      fCtrl = ctrl;
-      //SetCleanup(kDeepCleanup);
-
-      SetWindowName("ROOT Analyzer Control");
-
-      // layout the gui
-      fMenu = new TGPopupMenu(gClient->GetRoot());
-      fMenu->AddEntry("New TBrowser", CTRL_TBROWSER);
-      fMenu->AddEntry("-", 0);
-      fMenu->AddEntry("Next",     CTRL_NEXT);
-      fMenu->AddEntry("Continue", CTRL_CONTINUE);
-      fMenu->AddEntry("Pause",    CTRL_PAUSE);
-      fMenu->AddEntry("-", 0);
-      fMenu->AddEntry("Quit",     CTRL_QUIT);
-
-      menuBarItemLayout = new TGLayoutHints(kLHintsTop|kLHintsLeft, 0, 4, 0, 0);
-
-      fMenu->Associate(this);
-
-      fMenuBar = new TGMenuBar(this, 1, 1, kRaisedFrame);
-      fMenuBar->AddPopup("&Rootana", fMenu, menuBarItemLayout);
-      fMenuBar->Layout();
-
-      menuBarLayout = new TGLayoutHints(kLHintsTop|kLHintsLeft|kLHintsExpandX);
-      AddFrame(fMenuBar, menuBarLayout);
-
-      // Create a container frames containing buttons
-
-      // one button is resized up to the parent width.
-      // Note! this width should be fixed!
-      TGVerticalFrame *hframe1 = new TGVerticalFrame(this, 170, 50, kFixedWidth);
-
-      // to take whole space we need to use kLHintsExpandX layout hints
-      hframe1->AddFrame(new XButton(hframe1, "&Next ", ctrl, CTRL_NEXT),
-                        new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
-      AddFrame(hframe1, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
-
-      // two buttons are resized up to the parent width.
-      // Note! this width should be fixed!
-      TGCompositeFrame *cframe1 = new TGCompositeFrame(this, 170, 20, kHorizontalFrame | kFixedWidth);
-
-      // to share whole parent space we need to use kLHintsExpandX layout hints
-      cframe1->AddFrame(new XButton(cframe1, "&Continue", ctrl, CTRL_CONTINUE),
-                        new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 2, 2, 2));
-
-      cframe1->AddFrame(new XButton(cframe1, "&Pause", ctrl, CTRL_PAUSE),
-                        new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 2, 2, 2));
-
-      AddFrame(cframe1, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
-
-      // three buttons are resized up to the parent width.
-      // Note! this width should be fixed!
-      TGCompositeFrame *cframe2 = new TGCompositeFrame(this, 170, 20, kHorizontalFrame | kFixedWidth);
-
-#if 0
-      TGButton* ok = new XButton(cframe2, "OK", ctrl, 0);
-      // to share whole parent space we need to use kLHintsExpandX layout hints
-      cframe2->AddFrame(ok, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
-
-      TGButton* cancel = new XButton(cframe2, "Cancel ", ctrl, 0);
-      cframe2->AddFrame(cancel, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
-#endif
-
-      cframe2->AddFrame(new XButton(cframe2, "&Quit ", ctrl, CTRL_QUIT),
-                        new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
-
-      AddFrame(cframe2, new TGLayoutHints(kLHintsCenterX, 2, 2, 5, 1));
-
-      MapSubwindows();
-      Layout();
-      MapWindow();
-   }
-
-   ~MainWindow() // dtor // Closing the control window closes the whole program
-   {
-      if (gTrace)
-         printf("MainWindow::dtor!\n");
-
-      delete fMenu;
-      delete fMenuBar;
-      delete menuBarLayout;
-      delete menuBarItemLayout;
-   }
-
-   void CloseWindow()
-   {
-      if (gTrace)
-         printf("MainWindow::CloseWindow()\n");
-
-      if (fCtrl)
-         fCtrl->fValue = CTRL_QUIT;
-      //gSystem->ExitLoop();
-   }
-
-   Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
-   {
-      //printf("GUI Message %d %d %d\n",(int)msg,(int)parm1,(int)parm2);
-      switch (GET_MSG(msg))
-         {
-         default:
-            break;
-         case kC_COMMAND:
-            switch (GET_SUBMSG(msg))
-               {
-               default:
-                  break;
-               case kCM_MENU:
-                  //printf("parm1 %d\n", (int)parm1);
-                  switch (parm1)
-                     {
-                     case CTRL_TBROWSER:
-                        new TBrowser();
-                        break;
-                     default:
-                        //printf("Control %d!\n", (int)parm1);
-                        if (fCtrl)
-                           fCtrl->fValue = parm1;
-                        //gSystem->ExitLoop();
-                        break;
-                     }
-                  break;
-               }
-            break;
-         }
-
-      return kTRUE;
-   }
-};
-#endif
-
-class InteractiveModule: public TARunObject
-{
-public:
-   bool fContinue;
-   int  fSkip;
-#ifdef HAVE_ROOT
-   static XCtrl* fgCtrl;
-   static MainWindow *fgCtrlWindow;
-#endif
-
-   InteractiveModule(TARunInfo* runinfo)
-      : TARunObject(runinfo)
-   {
-      if (gTrace)
-         printf("InteractiveModule::ctor, run %d\n", runinfo->fRunNo);
-      fContinue = false;
-      fSkip = 0;
-#ifdef HAVE_ROOT
-      if (!fgCtrl)
-         fgCtrl = new XCtrl;
-      if (!fgCtrlWindow && runinfo->fRoot->fgApp) {
-         fgCtrlWindow = new MainWindow(gClient->GetRoot(), 200, 300, fgCtrl);
-      }
-#endif
-   }
-
-   ~InteractiveModule()
-   {
-      if (gTrace)
-         printf("InteractiveModule::dtor!\n");
-   }
-
-   void BeginRun(TARunInfo* runinfo)
-   {
-      printf("InteractiveModule::BeginRun, run %d\n", runinfo->fRunNo);
-   }
-
-   void EndRun(TARunInfo* runinfo)
-   {
-      printf("InteractiveModule::EndRun, run %d\n", runinfo->fRunNo);
-
-#ifdef HAVE_ROOT
-      if (fgCtrlWindow && runinfo->fRoot->fgApp) {
-         while (1) {
-#ifdef HAVE_THTTP_SERVER
-            if (TARootHelper::fgHttpServer) {
-               TARootHelper::fgHttpServer->ProcessRequests();
-            }
-#endif
-#ifdef HAVE_ROOT
-            if (TARootHelper::fgApp) {
-               gSystem->DispatchOneEvent(kTRUE);
-            }
-#endif
-#ifdef HAVE_MIDAS
-            if (!TMidasOnline::instance()->sleep(10)) {
-               // FIXME: indicate that we should exit the analyzer
-               return;
-            }
-#else
-            gSystem->Sleep(10);
-#endif
-
-            int ctrl = fgCtrl->fValue;
-            fgCtrl->fValue = 0;
-
-            switch (ctrl) {
-            case CTRL_QUIT:
-               return;
-            case CTRL_NEXT:
-               return;
-            case CTRL_CONTINUE:
-               return;
-            }
-         }
-      }
-#endif
-   }
-
-   void PauseRun(TARunInfo* runinfo)
-   {
-      printf("InteractiveModule::PauseRun, run %d\n", runinfo->fRunNo);
-   }
-
-   void ResumeRun(TARunInfo* runinfo)
-   {
-      printf("InteractiveModule::ResumeRun, run %d\n", runinfo->fRunNo);
-   }
-
-   TAFlowEvent* Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow)
-   {
-      printf("InteractiveModule::Analyze, run %d, %s\n", runinfo->fRunNo, event->HeaderToString().c_str());
-
-#ifdef HAVE_ROOT
-      if (fgCtrl->fValue == CTRL_QUIT) {
-         *flags |= TAFlag_QUIT;
-         return flow;
-      } else if (fgCtrl->fValue == CTRL_PAUSE) {
-         fContinue = false;
-      }
-#endif
-
-      if (fContinue && !(*flags & TAFlag_DISPLAY)) {
-         return flow;
-      } else {
-         fContinue = false;
-      }
-
-      if (fSkip > 0) {
-         fSkip--;
-         return flow;
-      }
-
-#ifdef HAVE_ROOT
-      if (fgCtrlWindow && runinfo->fRoot->fgApp) {
-         while (1) {
-#ifdef HAVE_THTTP_SERVER
-            if (TARootHelper::fgHttpServer) {
-               TARootHelper::fgHttpServer->ProcessRequests();
-            }
-#endif
-#ifdef HAVE_ROOT
-            if (TARootHelper::fgApp) {
-               gSystem->DispatchOneEvent(kTRUE);
-            }
-#endif
-#ifdef HAVE_MIDAS
-            if (!TMidasOnline::instance()->sleep(10)) {
-               *flags |= TAFlag_QUIT;
-               return flow;
-            }
-#else
-            gSystem->Sleep(10);
-#endif
-
-            int ctrl = fgCtrl->fValue;
-            fgCtrl->fValue = 0;
-
-            switch (ctrl) {
-            case CTRL_QUIT:
-               *flags |= TAFlag_QUIT;
-               return flow;
-            case CTRL_NEXT:
-               return flow;
-            case CTRL_CONTINUE:
-               fContinue = true;
-               return flow;
-            }
-         }
-      }
-#endif
-
+   if (fgCtrlWindow && runinfo->fRoot->fgApp) {
       while (1) {
-         char str[256];
-         fprintf(stdout, "manalyzer> "); fflush(stdout);
-         fgets(str, sizeof(str)-1, stdin);
-
-         printf("command [%s]\n", str);
-
-         if (str[0] == 'h') { // "help"
-            printf("Interactive manalyzer commands:\n");
-            printf(" q - quit\n");
-            printf(" h - help\n");
-            printf(" c - continue until next TAFlag_DISPLAY event\n");
-            printf(" n - next event\n");
-            printf(" aNNN - analyze N events, i.e. \"a10\"\n");
-         } else if (str[0] == 'q') { // "quit"
+#ifdef HAVE_THTTP_SERVER
+         if (TARootHelper::fgHttpServer) {
+            TARootHelper::fgHttpServer->ProcessRequests();
+         }
+#endif
+#ifdef HAVE_ROOT
+         if (TARootHelper::fgApp) {
+            gSystem->DispatchOneEvent(kTRUE);
+         }
+#endif
+#ifdef HAVE_MIDAS
+         if (!TMidasOnline::instance()->sleep(10)) {
             *flags |= TAFlag_QUIT;
             return flow;
-         } else if (str[0] == 'n') { // "next"
+         }
+#else
+         gSystem->Sleep(10);
+#endif
+
+         int ctrl = fgCtrl->fValue;
+         fgCtrl->fValue = 0;
+
+         switch (ctrl) {
+         case CTRL_QUIT:
+            *flags |= TAFlag_QUIT;
             return flow;
-         } else if (str[0] == 'c') { // "continue"
+         case CTRL_NEXT:
+            return flow;
+         case CTRL_CONTINUE:
             fContinue = true;
-            return flow;
-         } else if (str[0] == 'a') { // "analyze" N events
-            int num = atoi(str+1);
-            printf("Analyzing %d events\n", num);
-            if (num > 0) {
-               fSkip = num-1;
-            }
             return flow;
          }
       }
+   }
+#endif
 
-      return flow;
+   while (1) {
+      char str[256];
+      fprintf(stdout, "manalyzer> "); fflush(stdout);
+      fgets(str, sizeof(str)-1, stdin);
+
+      printf("command [%s]\n", str);
+
+      if (str[0] == 'h') { // "help"
+         printf("Interactive manalyzer commands:\n");
+         printf(" q - quit\n");
+         printf(" h - help\n");
+         printf(" c - continue until next TAFlag_DISPLAY event\n");
+         printf(" n - next event\n");
+         printf(" aNNN - analyze N events, i.e. \"a10\"\n");
+      } else if (str[0] == 'q') { // "quit"
+         *flags |= TAFlag_QUIT;
+         return flow;
+      } else if (str[0] == 'n') { // "next"
+         return flow;
+      } else if (str[0] == 'c') { // "continue"
+         fContinue = true;
+         return flow;
+      } else if (str[0] == 'a') { // "analyze" N events
+         int num = atoi(str+1);
+         printf("Analyzing %d events\n", num);
+         if (num > 0) {
+            fSkip = num-1;
+         }
+         return flow;
+      }
    }
 
-   void AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event)
-   {
-      if (gTrace)
-         printf("InteractiveModule::AnalyzeSpecialEvent, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
-   }
-};
+   return flow;
+}
+
+void InteractiveModule::AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event)
+{
+   if (gTrace)
+      printf("InteractiveModule::AnalyzeSpecialEvent, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
+}
+
 
 MainWindow* InteractiveModule::fgCtrlWindow = NULL;
 XCtrl* InteractiveModule::fgCtrl = NULL;
 
-class InteractiveModuleFactory: public TAFactory
+// ==================== InteractiveModuleFactory Methods ==================== //
+
+void InteractiveModuleFactory::Init(const std::vector<std::string> &args)
 {
-public:
+   if (gTrace)
+      printf("InteractiveModuleFactory::Init!\n");
+}
 
-   void Init(const std::vector<std::string> &args)
-   {
-      if (gTrace)
-         printf("InteractiveModuleFactory::Init!\n");
-   }
+void InteractiveModuleFactory::Finish()
+{
+   if (gTrace)
+      printf("InteractiveModuleFactory::Finish!\n");
+}
 
-   void Finish()
-   {
-      if (gTrace)
-         printf("InteractiveModuleFactory::Finish!\n");
-   }
-
-   TARunObject* NewRunObject(TARunInfo* runinfo)
-   {
-      if (gTrace)
-         printf("InteractiveModuleFactory::NewRunObject, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
-      return new InteractiveModule(runinfo);
-   }
-};
+TARunObject* InteractiveModuleFactory::NewRunObject(TARunInfo* runinfo)
+{
+   if (gTrace)
+      printf("InteractiveModuleFactory::NewRunObject, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
+   return new InteractiveModule(runinfo);
+}
 
 static void help()
 {
