@@ -299,7 +299,7 @@ public:
          for(int i = 0; i < 4; i++){
             sprintf(name,"ADC_Used_%i",i);
 
-             hADC_used[i] = new TH1D(name,title[i],512,-1,2047);
+             hADC_used[i] = new TH1D(name,title[i],511,1,2048);
              hADC_used[i]->SetXTitle("Energy");
              hADC_used[i]->SetYTitle("Counts");
          }
@@ -662,6 +662,8 @@ public:
       std::vector<int> anode_pathway(9,0);
       std::vector<double> earliest_times(64,999999);
       std::vector<int> counts(64,0);
+      Double_t datum[64][20] = {{0}};
+      
 
       //double tdc_bin = 0.01; // 100ps V1190
       int tdc_trig_chan = 7;
@@ -669,6 +671,7 @@ public:
       Double_t xroffset = 20.0; // 2 ns cable delay for XR
       Double_t yboffset = 20.0; // 2 ns cable delay for YB
       Double_t ytoffset = 10.0; // 1 ns cable delay for YT
+      Int_t hit = 0;
 
       if (runinfo->fRunNo >= 202) {
          //tdc_bin = 0.025; // 25ps V1290
@@ -708,16 +711,16 @@ public:
          }
          counts[chan] = counts[chan] + 1;
 
-        //count++;
+        datum[chan][hit] = t;
 
-        //datum[chan][count] = t;
+	hit++;
 
          if(t < earliest_times[chan])
             earliest_times[chan] = t;
       }
+	//datum[chan][hit] = t;
 
-
-        //printf("Multi %d\n", multi_xr);
+        printf("Hits %d\n", hit);
 
         Double_t xsum, xdiff, xpos, ysum, ydiff, ypos;
 
@@ -736,7 +739,13 @@ public:
                yt = earliest_times[20];
                yb = earliest_times[24];
                trig = earliest_times[28];
-	       trf = earliest_times[32];
+
+	       //for (int i=0; i<20; i++) { 
+	       //	trf[i] = datum[32][i];
+		//printf("trf %f\n", trf[i]);
+		//}
+
+		trf = datum[32][4];
 
                 multi_at = counts[0];
                 multi_am = counts[4];
@@ -820,15 +829,15 @@ public:
 
         hSienergy->Fill(Sienergy);
 
-        if( xl<999999 && xr<999999 && Sienergy>1){
+        if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
                x_y_diff_Gated[0]->Fill(xdiff*0.02);
                 hXPosition_Gated->Fill(xpos);
                 }
-        if( yt<999999 && yb<999999 && Sienergy>1){
+        if( yt<999999 && yb<999999 && Sienergy>800 && Sienergy<1100){
                x_y_diff_Gated[1]->Fill(ydiff*0.02);
                 hYPosition_Gated->Fill(ypos);
                 }
-        if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>1 ) {
+        if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>800 && Sienergy<1100 ) {
                hXYPosition_Gated->Fill(xpos,ypos);
                 }
 
@@ -837,6 +846,10 @@ public:
         hdE_E->Fill(Sienergy,PGACenergy);
 
         t1->Fill();
+
+	//for (int i=0; i<hit; i++) { 
+	//       	trf[i] = 0;
+	//	}
 
    } //end UpdateHistograms
 
