@@ -36,14 +36,14 @@ public:
    // EMMA things go below here:
    int ct;
 
-   int ach[4] = {0, 1, 2, 16};
+   int ach[6] = {0, 1, 2, 16, 18, 20};
 
 
    TH1D *fHTdcTrig;
    TH1D *fHTdcRaw[64];
    TH1D *fHAdcRaw[32];
    TH1D *hSienergy;
-   TH1D *hADC_used[4];
+   TH1D *hADC_used[6];
    TH1D *hATenergy;
    TH1D *hAMenergy;
    TH1D *hABenergy;
@@ -59,6 +59,9 @@ public:
    TH1D *hYPosition_Gated;
    TH2D *hXYPosition;
    TH2D *hXYPosition_Gated;
+   TH1D *hRF;
+   TH1D *hsbl;
+   TH1D *hsbr;
 
    TH1D *hmulti_at;
    TH1D *hmulti_am;
@@ -86,6 +89,8 @@ public:
    TCanvas* fCanvasdE_E;
    TCanvas* fCanvasAnodeMulti;
    TCanvas* fCanvasCathodeMulti;
+   TCanvas* fCanvasRF;
+   TCanvas* fCanvasSSB;
 
    TH1D*    fHTdcNhits = NULL;
    TH1D*    fHAdcNhits = NULL;
@@ -112,6 +117,9 @@ public:
    Double_t ABenergy;
    Double_t PGACenergy;
    Double_t trf;
+   Double_t trf_next;
+   Double_t sbl_ene;
+   Double_t sbr_ene;
 
    Int_t multi_at;
    Int_t multi_am;
@@ -150,6 +158,8 @@ public:
       fCanvasdE_E = new TCanvas("#Delta E-E");
       fCanvasAnodeMulti = new TCanvas("Anode Multiplicity");
       fCanvasCathodeMulti = new TCanvas("Cathode Multiplicity");
+      fCanvasRF = new TCanvas("RF");
+      fCanvasSSB = new TCanvas("Surface Barrier Detectors");
 
       // initialize histograms
 
@@ -295,8 +305,8 @@ public:
       }
 
         {
-         const char*title[] = {"Anode Top Energy", "Anode Middle Energy", "Anode Bottom Energy", "Silicon Energy"};
-         for(int i = 0; i < 4; i++){
+         const char*title[] = {"Anode Top Energy", "Anode Middle Energy", "Anode Bottom Energy", "Silicon Energy","SB Left","SB Right"};
+         for(int i = 0; i < 6; i++){
             sprintf(name,"ADC_Used_%i",i);
 
              hADC_used[i] = new TH1D(name,title[i],511,1,2048);
@@ -341,6 +351,17 @@ public:
          hmulti_trig = new TH1D("hmulti_trig","Trigger Multiplicity",20,0,20);
       }
 
+      {
+         hRF = new TH1D("hRF","RF",1000,15000,25000);
+      }
+
+      {
+         hsbr = new TH1D("hsbr","SB Right",2000,0,2000);
+      }
+
+      {
+         hsbl = new TH1D("hsbr","SB Left",2000,0,2000);
+      }
 
    }
 
@@ -365,6 +386,8 @@ public:
       DELETE(fCanvasdE_E);
       DELETE(fCanvasAnodeMulti);
       DELETE(fCanvasCathodeMulti);
+      DELETE(fCanvasRF);
+      DELETE(fCanvasSSB);
 
    }
 
@@ -389,7 +412,7 @@ public:
          x_y_diff_vs_sum[i]->Reset();
       }
 
-        for(int i =0; i < 4; i++) {
+        for(int i =0; i < 6; i++) {
         hADC_used[i]->Reset();
       }
 
@@ -401,6 +424,9 @@ public:
       hYPosition_Gated->Reset();
       hXYPosition->Reset();
       hXYPosition_Gated->Reset();
+      hRF->Reset();
+      hsbl->Reset();
+      hsbr->Reset();
 
         hmulti_at->Reset();
         hmulti_am->Reset();
@@ -561,8 +587,8 @@ public:
       {
         TCanvas* c1 = fCanvasEnergy;
         c1->Clear();
-        c1->Divide(2,2);
-        for(int i = 0; i < 4; i++){
+        c1->Divide(2,3);
+        for(int i = 0; i < 6; i++){
             c1->cd(1+i);
             hADC_used[i]->Draw();
          }
@@ -613,6 +639,26 @@ public:
 
         c1->Modified();
         c1->Update();
+      }
+
+      {
+        TCanvas* c1 = fCanvasRF;
+        c1->Clear();
+        hRF->Draw();
+        c1->Modified();
+        c1->Update();
+      }
+
+      {
+         TCanvas* c1 = fCanvasSSB;
+         c1->Clear();
+         c1->Divide(1,2);
+         c1->cd(1);
+         hsbr->Draw();
+         c1->cd(2);
+         hsbl->Draw();
+         c1->Modified();
+         c1->Update();
       }
 
    }
@@ -672,6 +718,7 @@ public:
       Double_t yboffset = 20.0; // 2 ns cable delay for YB
       Double_t ytoffset = 10.0; // 1 ns cable delay for YT
       Int_t hit = 0;
+      Int_t tdchit = 0; // for TDC
 
       if (runinfo->fRunNo >= 202) {
          //tdc_bin = 0.025; // 25ps V1290
@@ -711,16 +758,34 @@ public:
          }
          counts[chan] = counts[chan] + 1;
 
+
+
+
+	if (chan==32 && tdchit==2){
+		trf = t;
+	}
+
+	if (chan==32 && tdchit==3){
+		trf_next = t;
+	}
+		printf("chan %f\n", chan);
+		printf("hit %d\n", hit);
+		printf("tdchit %d\n", tdchit);
+
+
         datum[chan][hit] = t;
 
 	hit++;
+	if (chan==32) {
+	   tdchit++;
+	}
 
          if(t < earliest_times[chan])
             earliest_times[chan] = t;
       }
 	//datum[chan][hit] = t;
 
-        printf("Hits %d\n", hit);
+       // printf("Hits %d\n", hit);
 
         Double_t xsum, xdiff, xpos, ysum, ydiff, ypos;
 
@@ -745,8 +810,11 @@ public:
 		//printf("trf %f\n", trf[i]);
 		//}
 
-		trf = datum[32][4];
-
+//		trf = datum[32][4];
+		if (am<999999) {
+		printf("trf %f\n", trf);
+		printf("anode %f\n", anode);
+		}
                 multi_at = counts[0];
                 multi_am = counts[4];
                 multi_ab = counts[8];
@@ -809,7 +877,7 @@ public:
                fHAdcRaw[chan]->Fill(adc_data->hits[i].adc_data);
          }
 
-         for (int j=0; j < 4; j++){
+         for (int j=0; j < 6; j++){
             if (ach[j] == chan ) {
                double energy = 1.0*adc_data->hits[i].adc_data;
 
@@ -826,6 +894,9 @@ public:
         ATenergy = energy_signals[0];
         AMenergy = energy_signals[1];
         ABenergy = energy_signals[2];
+
+	sbl_ene = energy_signals[18];
+	sbr_ene = energy_signals[20];
 
         hSienergy->Fill(Sienergy);
 
@@ -844,6 +915,11 @@ public:
         PGACenergy = ATenergy + ABenergy + AMenergy;
 
         hdE_E->Fill(Sienergy,PGACenergy);
+
+	hRF->Fill(trf);
+
+	hsbl->Fill(sbl_ene);
+        hsbr->Fill(sbr_ene);
 
         t1->Fill();
 
@@ -879,6 +955,9 @@ public:
         t1->Branch("PGACenergy",&PGACenergy,"PGACenergy/D");
         t1->Branch("Sienergy",&Sienergy,"Sienergy/D");
 	t1->Branch("trf",&trf,"trf/D");
+	t1->Branch("trf_next",&trf_next,"trf_next/D");
+	t1->Branch("sbr_ene",&sbr_ene,"sbr_ene/D");
+	t1->Branch("sbl_ene",&sbl_ene,"sbl_ene/D");
    }
 
    void EndRun(TARunInfo* runinfo)
