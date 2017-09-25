@@ -34,9 +34,8 @@ public:
    int fCounter;
 
 public:
-   EmmaModule();
-   ~EmmaModule();
    EmmaModule(TARunInfo* runinfo, EmmaConfig* config);
+   ~EmmaModule();
    void ResetHistograms();
    void PlotHistograms(TARunInfo* runinfo);
    void UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data, const mesadc32event* adc_data);
@@ -50,14 +49,13 @@ public:
 public:
    // EMMA things go below here:
    int ct;
-
-   int ach[4] = {0, 1, 2, 16};
+   int ach[6] = {0, 1, 2, 16, 18, 20};
 
    TH1D *fHTdcTrig;
    TH1D *fHTdcRaw[64];
    TH1D *fHAdcRaw[32];
    TH1D *hSienergy;
-   TH1D *hADC_used[4];
+   TH1D *hADC_used[6];
    TH1D *hATenergy;
    TH1D *hAMenergy;
    TH1D *hABenergy;
@@ -73,6 +71,9 @@ public:
    TH1D *hYPosition_Gated;
    TH2D *hXYPosition;
    TH2D *hXYPosition_Gated;
+   TH1D *hRF;
+   TH1D *hsbl;
+   TH1D *hsbr;
 
    TH1D *hmulti_at;
    TH1D *hmulti_am;
@@ -100,6 +101,8 @@ public:
    TCanvas* fCanvasdE_E;
    TCanvas* fCanvasAnodeMulti;
    TCanvas* fCanvasCathodeMulti;
+   TCanvas* fCanvasRF;
+   TCanvas* fCanvasSSB;
 
    TH1D*    fHTdcNhits = NULL;
    TH1D*    fHAdcNhits = NULL;
@@ -125,6 +128,10 @@ public:
    Double_t AMenergy;
    Double_t ABenergy;
    Double_t PGACenergy;
+   Double_t trf;
+   Double_t trf_next;
+   Double_t sbl_ene;
+   Double_t sbr_ene;
 
    Int_t multi_at;
    Int_t multi_am;
@@ -137,7 +144,6 @@ public:
 
    TTree *t1;
 
-public:
 }; // end EmmaModule
 
 
@@ -146,7 +152,7 @@ public:
    EmmaConfig* fConfig = new EmmaConfig;
 
 public:
-   void Finish();
+   void Finish() { printf("Finish!\n"); }
    void Init(const std::vector<std::string> &args);
    TARunObject* NewRunObject(TARunInfo* runinfo);
 }; // end EmmaModuleFactory

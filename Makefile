@@ -59,7 +59,7 @@ SRCS      	:= $(shell find $(SDIR) -type f -name *.$(SRCEXT))
 OBJS      	:= $(patsubst $(SDIR)/%, $(BUILD)/%, $(SRCS:.$(SRCEXT)=.o))
 # HDRS      	:= $(patsubst $(SDIR)/%, $(HDIR)/%, $(SRCS:.$(SRCEXT)=.hxx))
 
-BIN         := $(BINDIR)/feemma.exe
+BIN         := $(BINDIR)/emmana.exe
 
 
 ############# TARGETS #############
@@ -71,7 +71,7 @@ $(BUILD):
 	mkdir $(BUILD)
 
 $(BINDIR):
-	mkdir $(BIN)
+	mkdir $(BINDIR)
 
 
 ############# Rules #############

@@ -33,6 +33,8 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fCanvasdE_E = new TCanvas("#Delta E-E");
    fCanvasAnodeMulti = new TCanvas("Anode Multiplicity");
    fCanvasCathodeMulti = new TCanvas("Cathode Multiplicity");
+   fCanvasRF = new TCanvas("RF");
+   fCanvasSSB = new TCanvas("Surface Barrier Detectors");
 
    // initialize histograms
 
@@ -178,11 +180,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
 
    {
-      const char*title[] = {"Anode Top Energy", "Anode Middle Energy", "Anode Bottom Energy", "Silicon Energy"};
-      for(int i = 0; i < 4; i++){
+      const char*title[] = {"Anode Top Energy", "Anode Middle Energy", "Anode Bottom Energy", "Silicon Energy","SB Left","SB Right"};
+      for(int i = 0; i < 6; i++){
          sprintf(name,"ADC_Used_%i",i);
 
-         hADC_used[i] = new TH1D(name,title[i],512,-1,2047);
+         hADC_used[i] = new TH1D(name,title[i],511,1,2048);
          hADC_used[i]->SetXTitle("Energy");
          hADC_used[i]->SetYTitle("Counts");
       }
@@ -224,10 +226,22 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
       hmulti_trig = new TH1D("hmulti_trig","Trigger Multiplicity",20,0,20);
    }
 
+   {
+      hRF = new TH1D("hRF","RF",1000,15000,25000);
+   }
 
-}
+   {
+      hsbr = new TH1D("hsbr","SB Right",2000,0,2000);
+   }
 
-EmmaModule::~EmmaModule() {
+   {
+      hsbl = new TH1D("hsbr","SB Left",2000,0,2000);
+   }
+
+} //end EmmaModule
+
+EmmaModule::~EmmaModule()
+{
    printf("EmmaModule::dtor!\n");
 
    DELETE(fCanvasTdcRaw);
@@ -247,10 +261,13 @@ EmmaModule::~EmmaModule() {
    DELETE(fCanvasdE_E);
    DELETE(fCanvasAnodeMulti);
    DELETE(fCanvasCathodeMulti);
+   DELETE(fCanvasRF);
+   DELETE(fCanvasSSB);
 
-}
+} //end ~EmmaModule
 
-void EmmaModule::ResetHistograms() {
+void EmmaModule::ResetHistograms()
+{
    for (int i=0; i<64; i++) {
       fHTdcRaw[i]->Reset();
    }
@@ -270,7 +287,7 @@ void EmmaModule::ResetHistograms() {
       x_y_diff_vs_sum[i]->Reset();
    }
 
-   for(int i =0; i < 4; i++) {
+   for(int i =0; i < 6; i++) {
       hADC_used[i]->Reset();
    }
 
@@ -282,6 +299,9 @@ void EmmaModule::ResetHistograms() {
    hYPosition_Gated->Reset();
    hXYPosition->Reset();
    hXYPosition_Gated->Reset();
+   hRF->Reset();
+   hsbl->Reset();
+   hsbr->Reset();
 
    hmulti_at->Reset();
    hmulti_am->Reset();
@@ -292,7 +312,273 @@ void EmmaModule::ResetHistograms() {
    hmulti_yb->Reset();
    hmulti_trig->Reset();
 
-}
+} //end ResetHistograms
+
+void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data, const mesadc32event* adc_data)
+{
+   double adc_dt = 0;
+   double tdc_dt = 0;
+
+   if (1) {
+      double ts = tdc_data->ettt/1.25;
+      static double prevts = 0;
+      if (prevts == 0) {
+         prevts = ts;
+      } else {
+         double dt = ts - prevts;
+         //printf("TDC ts %8d, dt %5d\n", (int)ts, (int)dt);
+         //fHAdcTime->Fill(dt);
+         prevts = ts;
+         tdc_dt = dt;
+      }
+   }
+
+   if (1) {
+      static int prevts = 0;
+      int ts = adc_data->time_stamp;
+      if (prevts == 0) {
+         prevts = ts;
+      } else {
+         int dt = ts - prevts;
+         //printf("ts %8d, dt %5d\n", ts, dt);
+         prevts = ts;
+         adc_dt = dt;
+      }
+   }
+
+   printf("tscheck: ADC %.0f, TDC %.0f\n", adc_dt, tdc_dt);
+
+   fHAdcTime0->Fill(adc_dt);
+   fHTdcTime0->Fill(tdc_dt);
+   fHAdcTime1->Fill(adc_dt);
+   fHTdcTime1->Fill(tdc_dt);
+   fHAdcTime2->Fill(adc_dt);
+   fHTdcTime2->Fill(tdc_dt);
+   fHAdcTdcTime->Fill(adc_dt - tdc_dt);
+
+   std::vector<int> anode_pathway(9,0);
+   std::vector<double> earliest_times(64,999999);
+   std::vector<int> counts(64,0);
+   Double_t datum[64][20] = {{0}};
+
+
+   //double tdc_bin = 0.01; // 100ps V1190
+   int tdc_trig_chan = 7;
+   Double_t xloffset = 40.0; // 4 ns cable delay for XL
+   Double_t xroffset = 20.0; // 2 ns cable delay for XR
+   Double_t yboffset = 20.0; // 2 ns cable delay for YB
+   Double_t ytoffset = 10.0; // 1 ns cable delay for YT
+   Int_t hit = 0;
+   Int_t tdchit = 0; // for TDC
+
+   if (runinfo->fRunNo >= 202) {
+      //tdc_bin = 0.025; // 25ps V1290
+      tdc_trig_chan = 7*4; // 28
+   }
+
+   int tdc_trig = 0;
+   for (unsigned int i=0; i<tdc_data->hits.size(); i++) {
+      if (tdc_data->hits[i].trailing) // skip trailing edge hits
+         continue;
+      int chan = tdc_data->hits[i].channel;
+      if (chan != tdc_trig_chan) // skip if not TDC trigger channel
+         continue;
+      tdc_trig = tdc_data->hits[i].measurement;
+      break;
+   }
+
+   printf("tdc_trig %d\n", tdc_trig);
+
+   fHTdcTrig->Fill(tdc_trig);
+
+   int chan = -1;
+   // Seems to be some noise in the measurements.  In the case of multiple
+   // measurements for the same channel, get the earliest measurement.
+   //    double a1m_earliest = 9999999.0, a2m_earliest = 9999999.0;
+   // Vector of the earliest TDC time for each channel
+   //    std::vector<double> a1_pulse_time(10,-1.0);
+   //    int a1_counter = 0;
+   for(unsigned int i = 0; i < tdc_data->hits.size(); i++){ // loop over measurements
+      if (tdc_data->hits[i].trailing) // skip trailing edge hits
+         continue;
+      chan = tdc_data->hits[i].channel;
+      double t = (tdc_data->hits[i].measurement);//-tdc_trig); //* tdc_bin; // convert to mm
+      if (fHTdcRaw[chan]) {
+         printf("chan %d, time %f\n", chan, t);
+         fHTdcRaw[chan]->Fill(t);
+      }
+      counts[chan] = counts[chan] + 1;
+
+
+
+
+      if (chan==32 && tdchit==2){
+         trf = t;
+      }
+
+      if (chan==32 && tdchit==3){
+         trf_next = t;
+      }
+      printf("chan %f\n", chan);
+      printf("hit %d\n", hit);
+      printf("tdchit %d\n", tdchit);
+
+
+      datum[chan][hit] = t;
+
+      hit++;
+      if (chan==32) {
+         tdchit++;
+      }
+
+      if(t < earliest_times[chan])
+         earliest_times[chan] = t;
+   }
+   //datum[chan][hit] = t;
+
+   // printf("Hits %d\n", hit);
+
+   Double_t xsum, xdiff, xpos, ysum, ydiff, ypos;
+
+   // Get earliest time for anode (if more than one)
+   anode = 999999.0;
+   for (int j=0; j<3; j++) {
+      if (earliest_times[j*4] < anode)
+         anode = earliest_times[j*4];
+   }
+
+   at = earliest_times[0];
+   am = earliest_times[4];
+   ab = earliest_times[8];
+   xr = earliest_times[12];
+   xl = earliest_times[16];
+   yt = earliest_times[20];
+   yb = earliest_times[24];
+   trig = earliest_times[28];
+
+   //for (int i=0; i<20; i++) {
+   //	trf[i] = datum[32][i];
+   //printf("trf %f\n", trf[i]);
+   //}
+
+   //		trf = datum[32][4];
+   if (am<999999) {
+      printf("trf %f\n", trf);
+      printf("anode %f\n", anode);
+   }
+   multi_at = counts[0];
+   multi_am = counts[4];
+   multi_ab = counts[8];
+   multi_xr = counts[12];
+   multi_xl = counts[16];
+   multi_yt = counts[20];
+   multi_yb = counts[24];
+   multi_trig = counts[28];
+
+   printf("Multi %d\n", multi_xr);
+
+   hmulti_at->Fill(multi_at);
+   hmulti_am->Fill(multi_am);
+   hmulti_ab->Fill(multi_ab);
+   hmulti_xr->Fill(multi_xr);
+   hmulti_xl->Fill(multi_xl);
+   hmulti_yt->Fill(multi_yt);
+   hmulti_yb->Fill(multi_yb);
+   hmulti_trig->Fill(multi_trig);
+
+   xsum = xl + xr - 2*anode;
+   xdiff = (xl + xloffset) - (xr + xroffset);
+   xpos = 80*(xdiff/xsum);
+
+   if( xl<999999 && xr<999999 ){
+      x_y_diff[0]->Fill(xdiff*0.0222);
+      x_y_sum[0]->Fill(xsum);
+      hXPosition->Fill(xpos);
+   }
+
+   ysum = yb + yt - 2*anode;
+   ydiff = (yb + yboffset) - (yt + ytoffset);
+   ypos = 30*(ydiff/ysum);
+
+   if( yt<999999 && yb<999999 ){
+      x_y_diff[1]->Fill(ydiff*0.0226);
+      x_y_sum[1]->Fill(ysum);
+      hYPosition->Fill(ypos);
+   }
+
+   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 ){
+      hXYPosition->Fill(xpos,ypos);
+   }
+
+
+   //*******ADC DATA COUNTING***************
+   //Make a vector of vectors to have each channel be a dynanmically expanding collection of energies
+   //std::vector< std::vector<double> > energy_signals(n_ach, std::vector<double>);
+   std::vector<double> energy_signals(32, 0);
+
+   //for each event in the ADC event structure
+   for (unsigned int i=0; i < adc_data->hits.size(); i++){
+
+      int chan = adc_data->hits[i].channel;
+
+      if (fHAdcRaw[chan]){
+         if (adc_data->hits[i].v) //If we're overflowing our ADC
+            fHAdcRaw[chan]->Fill(4096);
+         else
+            fHAdcRaw[chan]->Fill(adc_data->hits[i].adc_data);
+      }
+
+      for (int j=0; j < 6; j++){
+         if (ach[j] == chan ) {
+            double energy = 1.0*adc_data->hits[i].adc_data;
+
+            hADC_used[j]->Fill(energy);
+
+            energy_signals[chan] =energy;
+
+         }
+      }//end chan == ADC_used check
+
+   }//end foreach ADC event
+
+   Sienergy = energy_signals[16];
+   ATenergy = energy_signals[0];
+   AMenergy = energy_signals[1];
+   ABenergy = energy_signals[2];
+
+   sbl_ene = energy_signals[18];
+   sbr_ene = energy_signals[20];
+
+   hSienergy->Fill(Sienergy);
+
+   if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
+      x_y_diff_Gated[0]->Fill(xdiff*0.02);
+      hXPosition_Gated->Fill(xpos);
+   }
+   if( yt<999999 && yb<999999 && Sienergy>800 && Sienergy<1100){
+      x_y_diff_Gated[1]->Fill(ydiff*0.02);
+      hYPosition_Gated->Fill(ypos);
+   }
+   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>800 && Sienergy<1100 ) {
+      hXYPosition_Gated->Fill(xpos,ypos);
+   }
+
+   PGACenergy = ATenergy + ABenergy + AMenergy;
+
+   hdE_E->Fill(Sienergy,PGACenergy);
+
+   hRF->Fill(trf);
+
+   hsbl->Fill(sbl_ene);
+   hsbr->Fill(sbr_ene);
+
+   t1->Fill();
+
+   //for (int i=0; i<hit; i++) {
+   //              trf[i] = 0;
+   //	}
+
+} //end UpdateHistograms
 
 void EmmaModule::PlotHistograms(TARunInfo* runinfo)
 {
@@ -442,8 +728,8 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvasEnergy;
       c1->Clear();
-      c1->Divide(2,2);
-      for(int i = 0; i < 4; i++){
+      c1->Divide(2,3);
+      for(int i = 0; i < 6; i++){
          c1->cd(1+i);
          hADC_used[i]->Draw();
       }
@@ -496,231 +782,31 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Update();
    }
 
+   {
+      TCanvas* c1 = fCanvasRF;
+      c1->Clear();
+      hRF->Draw();
+      c1->Modified();
+      c1->Update();
+   }
+
+   {
+      TCanvas* c1 = fCanvasSSB;
+      c1->Clear();
+      c1->Divide(1,2);
+      c1->cd(1);
+      hsbr->Draw();
+      c1->cd(2);
+      hsbl->Draw();
+      c1->Modified();
+      c1->Update();
+   }
+
 }
 
-void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data, const mesadc32event* adc_data){
-   double adc_dt = 0;
-   double tdc_dt = 0;
 
-   if (1) {
-      double ts = tdc_data->ettt/1.25;
-      static double prevts = 0;
-      if (prevts == 0) {
-         prevts = ts;
-      } else {
-         double dt = ts - prevts;
-         //printf("TDC ts %8d, dt %5d\n", (int)ts, (int)dt);
-         //fHAdcTime->Fill(dt);
-         prevts = ts;
-         tdc_dt = dt;
-      }
-   }
-
-   if (1) {
-      static int prevts = 0;
-      int ts = adc_data->time_stamp;
-      if (prevts == 0) {
-         prevts = ts;
-      } else {
-         int dt = ts - prevts;
-         //printf("ts %8d, dt %5d\n", ts, dt);
-         prevts = ts;
-         adc_dt = dt;
-      }
-   }
-
-   printf("tscheck: ADC %.0f, TDC %.0f\n", adc_dt, tdc_dt);
-
-   fHAdcTime0->Fill(adc_dt);
-   fHTdcTime0->Fill(tdc_dt);
-   fHAdcTime1->Fill(adc_dt);
-   fHTdcTime1->Fill(tdc_dt);
-   fHAdcTime2->Fill(adc_dt);
-   fHTdcTime2->Fill(tdc_dt);
-   fHAdcTdcTime->Fill(adc_dt - tdc_dt);
-
-   std::vector<int> anode_pathway(9,0);
-   std::vector<double> earliest_times(64,999999);
-   std::vector<int> counts(64,0);
-
-   //double tdc_bin = 0.01; // 100ps V1190
-   int tdc_trig_chan = 7;
-   Double_t xloffset = 40.0; // 4 ns cable delay for XL
-   Double_t xroffset = 20.0; // 2 ns cable delay for XR
-   Double_t yboffset = 20.0; // 2 ns cable delay for YB
-   Double_t ytoffset = 10.0; // 1 ns cable delay for YT
-
-   if (runinfo->fRunNo >= 202) {
-      //tdc_bin = 0.025; // 25ps V1290
-      tdc_trig_chan = 7*4; // 28
-   }
-
-   int tdc_trig = 0;
-   for (unsigned int i=0; i<tdc_data->hits.size(); i++) {
-      if (tdc_data->hits[i].trailing) // skip trailing edge hits
-         continue;
-      int chan = tdc_data->hits[i].channel;
-      if (chan != tdc_trig_chan) // skip if not TDC trigger channel
-         continue;
-      tdc_trig = tdc_data->hits[i].measurement;
-      break;
-   }
-
-   printf("tdc_trig %d\n", tdc_trig);
-
-   fHTdcTrig->Fill(tdc_trig);
-
-   int chan = -1;
-   // Seems to be some noise in the measurements.  In the case of multiple
-   // measurements for the same channel, get the earliest measurement.
-   //    double a1m_earliest = 9999999.0, a2m_earliest = 9999999.0;
-   // Vector of the earliest TDC time for each channel
-   //    std::vector<double> a1_pulse_time(10,-1.0);
-   //    int a1_counter = 0;
-   for(unsigned int i = 0; i < tdc_data->hits.size(); i++){ // loop over measurements
-      if (tdc_data->hits[i].trailing) // skip trailing edge hits
-         continue;
-      chan = tdc_data->hits[i].channel;
-      double t = (tdc_data->hits[i].measurement);//-tdc_trig); //* tdc_bin; // convert to mm
-      if (fHTdcRaw[chan]) {
-         printf("chan %d, time %f\n", chan, t);
-         fHTdcRaw[chan]->Fill(t);
-      }
-      counts[chan] = counts[chan] + 1;
-
-      //count++;
-
-      //datum[chan][count] = t;
-
-      if(t < earliest_times[chan])
-         earliest_times[chan] = t;
-   }
-
-
-   //printf("Multi %d\n", multi_xr);
-
-   Double_t xsum, xdiff, xpos, ysum, ydiff, ypos;
-
-   // Get earliest time for anode (if more than one)
-   anode = 999999.0;
-   for (int j=0; j<3; j++) {
-      if (earliest_times[j*4] < anode)
-         anode = earliest_times[j*4];
-   }
-
-   at = earliest_times[0];
-   am = earliest_times[4];
-   ab = earliest_times[8];
-   xr = earliest_times[12];
-   xl = earliest_times[16];
-   yt = earliest_times[20];
-   yb = earliest_times[24];
-   trig = earliest_times[28];
-
-   multi_at = counts[0];
-   multi_am = counts[4];
-   multi_ab = counts[8];
-   multi_xr = counts[12];
-   multi_xl = counts[16];
-   multi_yt = counts[20];
-   multi_yb = counts[24];
-   multi_trig = counts[28];
-
-   printf("Multi %d\n", multi_xr);
-
-   hmulti_at->Fill(multi_at);
-   hmulti_am->Fill(multi_am);
-   hmulti_ab->Fill(multi_ab);
-   hmulti_xr->Fill(multi_xr);
-   hmulti_xl->Fill(multi_xl);
-   hmulti_yt->Fill(multi_yt);
-   hmulti_yb->Fill(multi_yb);
-   hmulti_trig->Fill(multi_trig);
-
-   xsum = xl + xr - 2*anode;
-   xdiff = (xl + xloffset) - (xr + xroffset);
-   xpos = 80*(xdiff/xsum);
-
-   if( xl<999999 && xr<999999 ){
-      x_y_diff[0]->Fill(xdiff*0.0222);
-      x_y_sum[0]->Fill(xsum);
-      hXPosition->Fill(xpos);
-   }
-
-   ysum = yb + yt - 2*anode;
-   ydiff = (yb + yboffset) - (yt + ytoffset);
-   ypos = 30*(ydiff/ysum);
-
-   if( yt<999999 && yb<999999 ){
-      x_y_diff[1]->Fill(ydiff*0.0226);
-      x_y_sum[1]->Fill(ysum);
-      hYPosition->Fill(ypos);
-   }
-
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 ){
-      hXYPosition->Fill(xpos,ypos);
-   }
-
-
-   //*******ADC DATA COUNTING***************
-   //Make a vector of vectors to have each channel be a dynanmically expanding collection of energies
-   //std::vector< std::vector<double> > energy_signals(n_ach, std::vector<double>);
-   std::vector<double> energy_signals(32, 0);
-
-   //for each event in the ADC event structure
-   for (unsigned int i=0; i < adc_data->hits.size(); i++){
-
-      int chan = adc_data->hits[i].channel;
-
-      if (fHAdcRaw[chan]){
-         if (adc_data->hits[i].v) //If we're overflowing our ADC
-            fHAdcRaw[chan]->Fill(4096);
-         else
-            fHAdcRaw[chan]->Fill(adc_data->hits[i].adc_data);
-      }
-
-      for (int j=0; j < 4; j++){
-         if (ach[j] == chan ) {
-            double energy = 1.0*adc_data->hits[i].adc_data;
-
-            hADC_used[j]->Fill(energy);
-
-            energy_signals[chan] =energy;
-
-         }
-      }//end chan == ADC_used check
-
-   }//end foreach ADC event
-
-   Sienergy = energy_signals[16];
-   ATenergy = energy_signals[0];
-   AMenergy = energy_signals[1];
-   ABenergy = energy_signals[2];
-
-   hSienergy->Fill(Sienergy);
-
-   if( xl<999999 && xr<999999 && Sienergy>1){
-      x_y_diff_Gated[0]->Fill(xdiff*0.02);
-      hXPosition_Gated->Fill(xpos);
-   }
-   if( yt<999999 && yb<999999 && Sienergy>1){
-      x_y_diff_Gated[1]->Fill(ydiff*0.02);
-      hYPosition_Gated->Fill(ypos);
-   }
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>1 ) {
-      hXYPosition_Gated->Fill(xpos,ypos);
-   }
-
-   PGACenergy = ATenergy + ABenergy + AMenergy;
-
-   hdE_E->Fill(Sienergy,PGACenergy);
-
-   t1->Fill();
-
-} //end UpdateHistograms
-
-
-void EmmaModule::BeginRun(TARunInfo* runinfo){
+void EmmaModule::BeginRun(TARunInfo* runinfo)
+{
    printf("BeginRun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
    time_t run_start_time = runinfo->fOdb->odbReadUint32("/Runinfo/Start time binary", 0, 0);
    printf("ODB Run start time: %d: %s", (int)run_start_time, ctime(&run_start_time));
@@ -743,9 +829,15 @@ void EmmaModule::BeginRun(TARunInfo* runinfo){
    t1->Branch("ABenergy",&ABenergy,"ABenergy/D");
    t1->Branch("PGACenergy",&PGACenergy,"PGACenergy/D");
    t1->Branch("Sienergy",&Sienergy,"Sienergy/D");
-}
+   t1->Branch("trf",&trf,"trf/D");
+   t1->Branch("trf_next",&trf_next,"trf_next/D");
+   t1->Branch("sbr_ene",&sbr_ene,"sbr_ene/D");
+   t1->Branch("sbl_ene",&sbl_ene,"sbl_ene/D");
 
-void EmmaModule::EndRun(TARunInfo* runinfo){
+} //end BeginRun
+
+void EmmaModule::EndRun(TARunInfo* runinfo)
+{
    printf("EndRun, run %d, events %d\n", runinfo->fRunNo, fCounter);
    time_t run_stop_time = runinfo->fOdb->odbReadUint32("/Runinfo/Stop time binary", 0, 0);
    printf("ODB Run stop time: %d: %s", (int)run_stop_time, ctime(&run_stop_time));
@@ -753,10 +845,12 @@ void EmmaModule::EndRun(TARunInfo* runinfo){
    //char fname[1024];
    //sprintf(fname, "output%05d.pdf", runinfo->fRunNo);
    //fATX->fH->fCanvas->SaveAs(fname);
-}
+
+} //end EndRun
 
 
-TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow) {
+TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* flags, TAFlowEvent* flow)
+{
    //printf("Analyze, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
 
    if (event->event_id != 1)
@@ -977,14 +1071,18 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
    fCounter++;
 
    return flow;
-}
 
-void EmmaModule::AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event){
+} // end Analyze
+
+void EmmaModule::AnalyzeSpecialEvent(TARunInfo* runinfo, TMEvent* event)
+{
    printf("AnalyzeSpecialEvent, run %d, event serno %d, id 0x%04x, data size %d\n", runinfo->fRunNo, event->serial_number, (int)event->event_id, event->data_size);
 }
 
+// ==================== EmmaModuleFacotry Methods ==================== //
 
-void EmmaModuleFactory::Init(const std::vector<std::string> &args){
+void EmmaModuleFactory::Init(const std::vector<std::string> &args)
+{
    printf("Init!\n");
 
    for (unsigned i=0; i<args.size(); i++) {
@@ -995,11 +1093,8 @@ void EmmaModuleFactory::Init(const std::vector<std::string> &args){
    TARootHelper::fgDir->cd(); // select correct ROOT directory
 }
 
-void EmmaModuleFactory::Finish() {
-   printf("Finish!\n");
-}
-
-TARunObject* EmmaModuleFactory::NewRunObject(TARunInfo* runinfo) {
+TARunObject* EmmaModuleFactory::NewRunObject(TARunInfo* runinfo)
+{
    printf("NewRun, run %d, file %s\n", runinfo->fRunNo, runinfo->fFileName.c_str());
    return new EmmaModule(runinfo, fConfig);
 }
