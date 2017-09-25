@@ -58,13 +58,13 @@ public:
    TH1D *hSum[2];
    TH1D *h1DPosition[2];
    TH2D *h2DPosition;
-   TH1D *h1DPositionSiliconGated[2];   
+   TH1D *h1DPositionSiliconGated[2];
    TH2D *h2DPositionSiliconGated;
-   TH1D *h1DPositionAnodeGated[2];   
+   TH1D *h1DPositionAnodeGated[2];
    TH2D *h2DPositionAnodeGated;
-   TH1D *h1DPositionRFTOFGated[2];   
+   TH1D *h1DPositionRFTOFGated[2];
    TH2D *h2DPositionRFTOFGated;
-   TH1D *h1DPositionPID2Gated[2];   
+   TH1D *h1DPositionPID2Gated[2];
    TH2D *h2DPositionPID2Gated;
    TH2D *hSiliconAnodeEnergy;
    TH2D *hAnodeEnergyRFTOF;
@@ -119,16 +119,16 @@ public:
 
    Double_t rftof;
    Double_t rft;
-/*
-   Int_t multi_at;
-   Int_t multi_am;
-   Int_t multi_ab;
-   Int_t multi_xl;
-   Int_t multi_xr;
-   Int_t multi_yt;
-   Int_t multi_yb;
-   Int_t multi_rf;
-*/
+   /*
+     Int_t multi_at;
+     Int_t multi_am;
+     Int_t multi_ab;
+     Int_t multi_xl;
+     Int_t multi_xr;
+     Int_t multi_yt;
+     Int_t multi_yb;
+     Int_t multi_rf;
+   */
    TTree *t1;
 
 }; // end EmmaModule
