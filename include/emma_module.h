@@ -54,6 +54,7 @@ public:
 
    TH1D *fHTdcRaw[64];
    TH1D *fHAdcRaw[32];
+   TH1D *fHAdcUsed[6];
    TH1D *hAnodeEnergy;
    TH1D *hSum[2];
    TH1D *h1DPosition[2];

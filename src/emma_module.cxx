@@ -48,13 +48,19 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    // Initialize ADC histograms
    {
-
    for (int i=0; i<32; i++) {
       char title[256];
       sprintf(title, "ADC_%d", i);
       fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
    }
-   
+   }
+	
+   {
+   const char* title[] = { "Anode Top", "Anode Middle", "Anode Bottom","Focal Plane Silicon","Left SSB","Right SSB" };
+   for (int i=0; i<6; i++) {
+      sprintf(name,"hADCused_%i",i);
+      fHAdcUsed[i] = new TH1D(name, title[i], 1920, 1, 1921);
+   }
    }
    // initialize x_y_sum histogram
    {     
@@ -213,6 +219,10 @@ void EmmaModule::ResetHistograms()
       fHAdcRaw[i]->Reset();
    }
 
+    for (int i=0; i<6; i++) {
+      fHAdcUsed[i]->Reset();
+   }
+   
   for (int i=0; i<2; i++) {
       hSum[i]->Reset();
    }   
@@ -453,6 +463,14 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    hSiliconAnodeEnergy->Fill(Sienergy,AnodeEnergy);
    hAnodeEnergyRFTOF->Fill(rft,AnodeEnergy);
 
+   fHAdcUsed[0]->Fill(ATenergy);
+   fHAdcUsed[1]->Fill(AMenergy);
+   fHAdcUsed[2]->Fill(ABenergy);
+   fHAdcUsed[3]->Fill(Sienergy);
+   fHAdcUsed[4]->Fill(sbl_ene);
+   fHAdcUsed[5]->Fill(sbr_ene);
+
+
    if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
       h1DPositionSiliconGated[0]->Fill(xpos);
    }
@@ -544,11 +562,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionSiliconGated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-          h1DPositionSiliconGated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //c1->cd(1);
+      h1DPositionSiliconGated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -564,11 +582,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionAnodeGated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-          h1DPositionAnodeGated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //   c1->cd(1+i);
+      h1DPositionAnodeGated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -584,11 +602,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionRFTOFGated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-          h1DPositionRFTOFGated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //c1->cd(1+i);
+      h1DPositionRFTOFGated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -604,11 +622,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionPID2Gated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-          h1DPositionPID2Gated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //   c1->cd(1+i);
+      h1DPositionPID2Gated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -628,17 +646,17 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Divide(2,3);
 
       c1->cd(1);
-      fHAdcRaw[0]->Draw();
+      fHAdcUsed[0]->Draw();
       c1->cd(2);
-      fHAdcRaw[1]->Draw();
+      fHAdcUsed[1]->Draw();
       c1->cd(3);
-      fHAdcRaw[2]->Draw();
+      fHAdcUsed[2]->Draw();
       c1->cd(4);
-      fHAdcRaw[16]->Draw();
+      fHAdcUsed[3]->Draw();
       c1->cd(5);
-      fHAdcRaw[18]->Draw();
+      fHAdcUsed[4]->Draw();
       c1->cd(6);
-      fHAdcRaw[20]->Draw();
+      fHAdcUsed[5]->Draw();
       
       c1->Modified();
       c1->Update();
