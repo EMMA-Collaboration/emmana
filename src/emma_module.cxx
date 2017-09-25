@@ -71,18 +71,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    // initialize 1D position histogram
    {      
-      const char* title[] = {"X Position", "Y Position"};
-      for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPosition_%i",i);
-	if(i == 0) {
-            h1DPosition[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPosition[i]->SetXTitle("X Position (mm)");
-	}
-        if(i == 1) {
-            h1DPosition[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPosition[i]->SetXTitle("Y Position (mm)");
-	}
-      }
+            h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
+	    h1DPosition[0]->SetXTitle("X Position (mm)");
+	
+            h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
+	    h1DPosition[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -94,18 +87,12 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (Silicon Gated)
-      const char* title[] = {"X Position Silicon Gated", "Y Position Silicon Gated"};
-      for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPositionSiliconGated_%i",i);
-	if(i == 0) {
-            h1DPositionSiliconGated[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPositionSiliconGated[i]->SetXTitle("X Position (mm)");
-	}
-        if(i == 1) {
-            h1DPositionSiliconGated[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPositionSiliconGated[i]->SetXTitle("Y Position (mm)");
-	}
-      }
+      
+            h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
+	    h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
+	
+            h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
+	    h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -117,18 +104,13 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (Anode Gated)
-      const char* title[] = {"X Position Anode Gated", "Y Position Anode Gated"};
-      for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPositionAnodeGated_%i",i);
-	if(i == 0) {
-            h1DPositionAnodeGated[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPositionAnodeGated[i]->SetXTitle("X Position (mm)");
-	}
-        if(i == 1) {
-            h1DPositionAnodeGated[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPositionAnodeGated[i]->SetXTitle("Y Position (mm)");
-	}
-      }
+      
+            h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
+	    h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
+
+            h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
+	    h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
+
    }
 
    {
@@ -140,18 +122,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (RFTOF Gated)
-      const char* title[] = {"X Position RF-TOF Gated", "Y Position RF-TOF Gated"};
-      for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPositionRFTOFGated_%i",i);
-	if(i == 0) {
-            h1DPositionRFTOFGated[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPositionRFTOFGated[i]->SetXTitle("X Position (mm)");
-	}
-        if(i == 1) {
-            h1DPositionRFTOFGated[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPositionRFTOFGated[i]->SetXTitle("Y Position (mm)");
-	}
-      }
+            h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
+	    h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
+	
+            h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
+	    h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -163,18 +138,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (PID2 Gated)
-      const char* title[] = {"X Position PID2 Gated", "Y Position PID2 Gated"};
-      for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPositionPID2Gated_%i",i);
-	if(i == 0) {
-            h1DPositionPID2Gated[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPositionPID2Gated[i]->SetXTitle("X Position (mm)");
-	}
-        if(i == 1) {
-            h1DPositionPID2Gated[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPositionPID2Gated[i]->SetXTitle("Y Position (mm)");
-	}
-      }
+            h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
+	    h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
+	
+            h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
+	    h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -573,6 +541,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionSiliconGated;
       c1->Clear();
+      c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
           h1DPositionSiliconGated[i]->Draw();
@@ -592,6 +561,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionAnodeGated;
       c1->Clear();
+      c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
           h1DPositionAnodeGated[i]->Draw();
@@ -611,6 +581,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionRFTOFGated;
       c1->Clear();
+      c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
           h1DPositionRFTOFGated[i]->Draw();
@@ -630,6 +601,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionPID2Gated;
       c1->Clear();
+      c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
           h1DPositionPID2Gated[i]->Draw();
