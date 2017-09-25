@@ -503,6 +503,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
 
 void EmmaModule::PlotHistograms(TARunInfo* runinfo)
 {
+   gStyle->SetOptStat("eMRi");
    printf("PlotHistograms!\n");
 
    // plot xy sums
@@ -521,12 +522,13 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
 	TCanvas* c1 = fCanvas1DPosition;
       	c1->Clear();
-	c1->Divide(2,1);
+	c1->Divide(1,2);
 
 	c1->cd(1);
         h1DPosition[0]->Draw();
-	c1->cd(2);
-        h1DPosition[1]->Draw();
+//	c1->cd(2);
+//        h1DPosition[1]->Draw();
+
         c1->Modified();
         c1->Update();
    }
