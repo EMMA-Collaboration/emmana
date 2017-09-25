@@ -19,7 +19,7 @@ endif
 
 ifdef MIDASSYS
 MIDASLIBS = $(MIDASSYS)/linux/lib/libmidas.a -lutil -lrt
-CXXFLAGS += -DHAVE_MIDAS -DOS_LINUX -Dextname -I$(MIDASSYS)/include
+CXXFLAGS += -DHAVE_MIDAS -DOS_LINUX -Dextname -I$(MIDASSYS)/include -Iinclude
 
 UNAME=$(shell uname)
 RTLIB=
@@ -47,38 +47,44 @@ ROOTANAINC = -I../include
 ROOTANALIBS = ../lib/librootana.a
 endif
 
-OBJS:=
-#OBJS += TV792Histogram.o TV1190Histogram.o
-#OBJS += TL2249Histogram.o TAgilentHistogram.o
-#OBJS += TV1720Waveform.o TDT724Waveform.o
-#OBJS += TV1730DppWaveform.o TV1730RawWaveform.o
-#OBJS += TV1720Correlations.o
-#OBJS += TAnaManager.o
+BUILD		:= $(PWD)/build
+# LDIR		:= $(PWD)/lib
+# CINT		:= $(PWD)/cint
+SDIR		:= $(PWD)/src
+HDIR		:= $(PWD)/include
+BINDIR      := $(PWD)/bin
 
-all:: $(OBJS)
-#all:: ana.exe
-#all:: analyzer.exe
-#all:: anaDisplay.exe
-#all:: midas2root.exe
-all:: emmana.exe
+SRCEXT		:= cxx
+SRCS      	:= $(shell find $(SDIR) -type f -name *.$(SRCEXT))
+OBJS      	:= $(patsubst $(SDIR)/%, $(BUILD)/%, $(SRCS:.$(SRCEXT)=.o))
+# HDRS      	:= $(patsubst $(SDIR)/%, $(HDIR)/%, $(SRCS:.$(SRCEXT)=.hxx))
 
-#emma_module.o: v1190unpack.h
-#Unpack.o: Unpack.h Alpha16.h
-#anaDisplay.o: Alpha16.o
+BIN         := $(BINDIR)/emmana.exe
 
-#OBJS += v1190unpack.o
-OBJS += mesadc32unpack.o
 
-emmana.exe: $(OBJS) manalyzer.o manalyzer_main.o emma_module.o
+############# TARGETS #############
+all: $(OBJS) $(BIN)
+
+$(OBJS): | $(BUILD)
+
+$(BUILD):
+	mkdir $(BUILD)
+
+$(BINDIR):
+	mkdir $(BINDIR)
+
+
+############# Rules #############
+$(BUILD)/%.o: $(SDIR)/%.cxx
+	$(CXX) $(CXXFLAGS) $(ROOTANAINC) -c -o $@ $<
+
+$(BIN): $(OBJS) | $(BINDIR)
 	$(CXX) -o $@ $(CXXFLAGS) $(ROOTANAINC) $^ $(ROOTANALIBS) $(MIDASLIBS) $(ROOTGLIBS) -lm -lz -lpthread -lssl -lutil
-
-%.o: %.cxx
-	$(CXX) $(CXXFLAGS) $(ROOTANAINC) -c $<
 
 dox:
 	doxygen
 
 clean::
-	-rm -f *.o *.a *.exe
+	rm -f $(BUILD)/* $(BINDIR)/*
 
 # end
