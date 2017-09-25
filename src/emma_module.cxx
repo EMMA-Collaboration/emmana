@@ -200,7 +200,7 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize second PID histogram
-      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF",512,-1,2047,512,-1,2047);
+      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF",300,1200,2400,512,-1,2047);
    }
 
    {
