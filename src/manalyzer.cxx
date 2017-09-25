@@ -176,9 +176,29 @@ TARootHelper::TARootHelper(const TARunInfo* runinfo) // ctor
    if (gTrace)
       printf("TARootHelper::ctor!\n");
 
-   char xfilename[1024];
-   // char* format = "${DH}/output%05d.root";
-   sprintf(xfilename, "output%05d.root", runinfo->fRunNo);
+   TString xfilename = "output";
+   char ext[10];
+   sprintf(ext, "%05d.root", runinfo->fRunNo);
+   xfilename += ext;
+
+   // Check for $DH/rootfiles
+   TString outdir = "$DH";
+   Bool_t have_DH = !(gSystem->ExpandPathName(outdir));
+
+ dhcheck:
+   if (have_DH) { // Check for $DH/rootfiles
+      outdir += "/rootfiles";
+      void *d = gSystem->OpenDirectory(outdir.Data());
+      if (d) // Directory exists, need to free it
+         gSystem->FreeDirectory(d);
+      else { // Doesn't exist, set path back to "."
+         have_DH = false;
+         goto dhcheck;
+      }
+   }
+   else outdir = ".";
+
+   gSystem->PrependPathName(outdir.Data(), xfilename);
 
    fOutputFile = new TFile(xfilename, "RECREATE");
 
