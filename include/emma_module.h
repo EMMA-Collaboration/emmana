@@ -70,8 +70,6 @@ public:
    TH1D *hrft;
    TH1D *hMulti[8];
 
-   TCanvas* fCanvasTdcRaw;
-   TCanvas* fCanvasAdcRaw;
    TCanvas* fCanvasSums;
    TCanvas* fCanvas1DPosition;
    TCanvas* fCanvas2DPosition;

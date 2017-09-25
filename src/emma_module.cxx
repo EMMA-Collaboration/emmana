@@ -522,10 +522,10 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       TCanvas* c1 = fCanvas1DPosition;
       c1->Clear();
       c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-          h1DPosition[i]->Draw();
-      }
+         c1->cd(1);
+          h1DPosition[0]->Draw();
+         c1->cd(2);
+          h1DPosition[1]->Draw();
       c1->Modified();
       c1->Update();
    }
