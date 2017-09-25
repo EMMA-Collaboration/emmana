@@ -517,6 +517,18 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && rft>1900 && rft<2200 ) {
      h2DPositionRFTOFGated->Fill(xpos,ypos);
    }
+
+   if( xl<999999 && xr<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300 ){
+      h1DPositionPID2Gated[0]->Fill(xpos);
+   }
+
+   if( yt<999999 && yb<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300 ){
+      h1DPositionPID2Gated[1]->Fill(ypos);
+   }
+   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300  ) {
+     h2DPositionPID2Gated->Fill(xpos,ypos);
+   }
+
    t1->Fill();
 
 } //end UpdateHistograms
@@ -559,20 +571,77 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
    // Plot 1D Position Gated
    {
-      TCanvas* c1 = fCanvas1DPositionGated;
+      TCanvas* c1 = fCanvas1DPositionSiliconGated;
       c1->Clear();
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
-          h1DPositionGated[i]->Draw();
+          h1DPositionSiliconGated[i]->Draw();
       }
       c1->Modified();
       c1->Update();
    }
    // Plot 2D Position Gated
    {
-      TCanvas* c1 = fCanvas2DPositionGated;
+      TCanvas* c1 = fCanvas2DPositionSiliconGated;
       c1->Clear();
-      h2DPositionGated->Draw("colz");
+      h2DPositionSiliconGated->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 1D Position Gated
+   {
+      TCanvas* c1 = fCanvas1DPositionAnodeGated;
+      c1->Clear();
+      for(int i = 0; i < 2; i++){
+         c1->cd(1+i);
+          h1DPositionAnodeGated[i]->Draw();
+      }
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 2D Position Gated
+   {
+      TCanvas* c1 = fCanvas2DPositionAnodeGated;
+      c1->Clear();
+      h2DPositionAnodeGated->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 1D Position Gated
+   {
+      TCanvas* c1 = fCanvas1DPositionRFTOFGated;
+      c1->Clear();
+      for(int i = 0; i < 2; i++){
+         c1->cd(1+i);
+          h1DPositionRFTOFGated[i]->Draw();
+      }
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 2D Position Gated
+   {
+      TCanvas* c1 = fCanvas2DPositionRFTOFGated;
+      c1->Clear();
+      h2DPositionAnodeGated->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 1D Position Gated
+   {
+      TCanvas* c1 = fCanvas1DPositionPID2Gated;
+      c1->Clear();
+      for(int i = 0; i < 2; i++){
+         c1->cd(1+i);
+          h1DPositionPID2Gated[i]->Draw();
+      }
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 2D Position Gated
+   {
+      TCanvas* c1 = fCanvas2DPositionPID2Gated;
+      c1->Clear();
+      h2DPositionPID2Gated->Draw("colz");
       c1->Modified();
       c1->Update();
    }
