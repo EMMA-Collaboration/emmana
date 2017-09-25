@@ -235,7 +235,7 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
 
    {
-      hsbl = new TH1D("hsbr","SB Left",2000,0,2000);
+      hsbl = new TH1D("hsbl","SB Left",2000,0,2000);
    }
 
 } //end EmmaModule
@@ -419,7 +419,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
       if (chan==32 && tdchit==3){
          trf_next = t;
       }
-      printf("chan %f\n", chan);
+      printf("chan %i\n", chan);
       printf("hit %d\n", hit);
       printf("tdchit %d\n", tdchit);
 
@@ -916,96 +916,6 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
       }
    }
 
-   /*    {
-         TMBank* b = event->FindBank("AAAA");
-
-         if (b) {
-         int bklen = b->data_size;
-         const char* bkptr = event->GetBankData(b);
-
-         if (bkptr) {
-         //printf("EMMA ADC, pointer: %p, len %d\n", bkptr, bklen);
-
-         Alpha16Packet *ap = new Alpha16Packet();
-         ap->Unpack(bkptr, bklen);
-         //ap->Print();
-
-         Alpha16Waveform *aw = new Alpha16Waveform();
-         aw->Unpack(bkptr, bklen);
-
-         if (ap->channelId == 0) {
-         printf("EMMA ADC, timestamp %d, channel 0\n", ap->eventTimestamp);
-
-         double adc_offset = 0;
-
-         if (runinfo->fRunNo == 73)
-         adc_offset = -166696*800;
-
-         if (runinfo->fRunNo == 84)
-         adc_offset = -166696*800;
-
-         if (runinfo->fRunNo == 112) { // TDC sn 364629, ADC sn 1459242/364810
-         //adc_offset = (-2067919-1056035)*800;
-         // TDC 1142, ADC 6614/1653 -> diff
-
-         adc_offset = (1973667-34439772+259169+1973667)*800.0; // TDC 581940, ADC 2327722/581930
-         }
-
-         const double adc_clk = 9.9987; //10.0;
-         static int old_ts = 0;
-         double xts = ap->eventTimestamp*adc_clk + adc_offset;
-
-         printf("EMMA ADC sn %d %d, delta %5d, ts %d\n", event->serial_number, event->serial_number/4, (int)(((ap->eventTimestamp - old_ts)*adc_clk)/800.0), (int)(xts/800.0));
-         old_ts = ap->eventTimestamp;
-
-         if (0 && runinfo->fRoot->fgApp) {
-         TCanvas *c = new TCanvas();
-         c->cd();
-         TH1D* hw = new TH1D("adc0", "adc0", ap->nsamples, 0, ap->nsamples);
-         for (int i=0; i<ap->nsamples; i++)
-         hw->SetBinContent(i+1, (*aw)[i]);
-         hw->Draw();
-         c->Modified();
-         c->Draw();
-         }
-         }
-   */
-   /*               if (ap->channelId == 1) {
-                    printf("EMMA ADC, timestamp %d, channel 1\n", ap->eventTimestamp);
-
-                    static TH1D* hw = NULL;
-                    if (!hw)
-                    hw = new TH1D("adc1", "adc1", ap->nsamples, 0, ap->nsamples);
-                    for (int i=0; i<ap->nsamples; i++)
-                    hw->SetBinContent(i+1, (*aw)[i]);
-                    double SiEnergy = hw->GetMaximum();
-                    if (SiEnergy < 0 ) SiEnergy = -1;
-                    UpdateSiEnergyRawHist(SiEnergy);
-
-                    if (runinfo->fRoot->fgApp) {
-                    static TCanvas *c = NULL;
-                    if (!c)
-                    c = new TCanvas();
-                    c->Clear();
-                    c->cd();
-                    hw->SetMinimum(-12000);
-                    hw->SetMaximum(12000);
-                    hw->Draw();
-                    c->Modified();
-                    c->Draw();
-                    c->Update();
-
-                    if (runinfo->fRoot->fgApp)
-                    runinfo->fRoot->fgApp->Run(kTRUE);
-                    }
-                    }
-
-                    delete ap;
-                    delete aw;
-                    }
-                    }
-                    }
-   */
    {
       TMBank* b = event->FindBank("MADC");
 

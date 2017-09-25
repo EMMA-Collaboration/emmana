@@ -1075,12 +1075,12 @@ TARunObject* InteractiveModuleFactory::NewRunObject(TARunInfo* runinfo)
 static void help()
 {
    printf("\nUsage:\n");
-   printf("\n./analyzer.exe [-h] [-R8081] [-oOutputfile.mid] [file1 file2 ...] [-- arguments passed to modules ...]\n");
+   printf("\n./analyzer.exe [-h] [-R8081] [-o Outputfile.root] [file1 file2 ...] [-- arguments passed to modules ...]\n");
    printf("\n");
    printf("   -h                  - print this help message\n");
    printf("   -H <hostname>       - connect to MIDAS experiment on given host\n");
    printf("   -E <exptname>       - connect to this MIDAS experiment\n");
-   printf("   -o <Outputfile.mid> - write to this file\n");
+   printf("   -o <Outputfile.root> - write to this file\n");
    printf("   -R <nnnn>           - Start the ROOT THttpServer HTTP server on specified tcp port,\n");
    printf("                         access by firefox http://localhost:8081\n");
    printf("   -X <nnnn>           - Start the Xml server on specified tcp port\n");
