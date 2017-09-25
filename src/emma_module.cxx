@@ -562,15 +562,14 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
    // Plot 1D Position Gated
    {
-      TCanvas* c1 = fCanvas1DPositionAnodeGated;
-      c1->Clear();
-      c1->Divide(1,2);
+      fCanvas1DPositionAnodeGated->Clear();
+      fCanvas1DPositionAnodeGated->Divide(1,2);
       for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
+         fCanvas1DPositionAnodeGated->cd(1+i);
           h1DPositionAnodeGated[i]->Draw();
       }
-      c1->Modified();
-      c1->Update();
+      fCanvas1DPositionAnodeGated->Modified();
+      fCanvas1DPositionAnodeGated->Update();
    }
    // Plot 2D Position Gated
    {
