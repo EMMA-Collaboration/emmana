@@ -15,256 +15,144 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fConfig = config;
 
    // initialize canvases
-
-   fCanvasTdcRaw = new TCanvas("TDC raw data");
-   fCanvasTdcUsed = new TCanvas("TDC raw data (in-use channels)");
-   //fCanvasAdcRaw = new TCanvas("ADC raw data");
-   fCanvasXYDiffs = new TCanvas("XY Differences");
-   fCanvasXYDiffsGated = new TCanvas("XY Differences Gated");
-   fCanvasXYSums = new TCanvas("XY Sums");
-   //fCanvasDiffVsSum = new TCanvas("Cathode Differences VS Sums");
-   fCanvasXYPositions = new TCanvas("XY Positions");
-   fCanvasXYPositions_Gated = new TCanvas("Silicon Gated XY Positions");
-   fCanvasXPosition = new TCanvas("X Position");
-   fCanvasXPosition_Gated = new TCanvas("X Position Gated");
-   fCanvasYPosition = new TCanvas("Y Position");
-   fCanvasYPosition_Gated = new TCanvas("Y Position Gated");
-   fCanvasEnergy = new TCanvas("Energy Spectra");
-   fCanvasdE_E = new TCanvas("#Delta E-E");
-   fCanvasAnodeMulti = new TCanvas("Anode Multiplicity");
-   fCanvasCathodeMulti = new TCanvas("Cathode Multiplicity");
-   fCanvasRF = new TCanvas("RF");
-   fCanvasSSB = new TCanvas("Surface Barrier Detectors");
+   fCanvasSums = new TCanvas("XY Sums");
+   fCanvas1DPosition = new TCanvas("1D Position");
+   fCanvas2DPosition = new TCanvas("2D Position");
+   fCanvas1DPositionGated = new TCanvas("1D Position Gated");
+   fCanvas2DPositionGated = new TCanvas("2D Position Gated");
+   fCanvasEnergySpectra = new TCanvas("Energy Spectra");
+   fCanvasPID1 = new TCanvas("Silicon vs Anode Energy");
+   fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy");
+   fCanvasMulti = new TCanvas("Multiplicity");
 
    // initialize histograms
 
-   fHTdcNhits = new TH1D("TDC_nhits", "TDC_nhits", 100, 0, 100);
-   fHAdcNhits = new TH1D("ADC_nhits", "ADC_nhits", 16, 0, 16);
+   ct = 0;
+   char name[100];
 
-   fHAdcTime0 = new TH1D("ADC_time0", "ADC time between events, usec", 100, 0, 200000);
-   fHTdcTime0 = new TH1D("TDC_time0", "TDC time between events, usec", 100, 0, 200000);
-   fHAdcTime1 = new TH1D("ADC_time1", "ADC time between events, usec", 1000, 0, 15000);
-   fHTdcTime1 = new TH1D("TDC_time1", "TDC time between events, usec", 1000, 0, 15000);
-   fHAdcTime2 = new TH1D("ADC_time2", "ADC time between events, usec", 1000, 0, 1000);
-   fHTdcTime2 = new TH1D("TDC_time2", "TDC time between events, usec", 1000, 0, 1000);
-   fHAdcTdcTime = new TH1D("ADC_TDC_time", "ADC-TDC time mismatch, usec", 101, -50, 50);
-
-   if (runinfo->fRunNo < 202) {
-      fHTdcTrig = new TH1D("TDC_trig", "TDC trigger signal", 100, 20000, 21000);
-   } else {
-      fHTdcTrig = new TH1D("TDC_trig", "TDC trigger signal", 100, 19000, 20000);
-   }
-
+   // Initialize TDC histograms
+   {
+   
    for (int i=0; i<64; i++) {
       char title[256];
       sprintf(title, "TDC_%d", i);
       fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
    }
 
+   }
+   // Initialize ADC histograms
+   {
+
    for (int i=0; i<32; i++) {
       char title[256];
       sprintf(title, "ADC_%d", i);
       fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
    }
-   /*
-     for (int i=0; i<9; i++) {
-     char title[256];
-     sprintf(title, "TDC_%d", i);
-     hTdcUsed[i] = new TH1D(title, title, 40000, 0, 40000);
-     }
-   */
-   // **************************************
-   // INITIALIZATION
-   // **************************************
-   ct = 0;
-   // initialize histograms
-   char name[100];
-   Float_t diffmin=-100;
-   Float_t diffmax=100;
-   Float_t diffbin=200;
-
-   Float_t summin=0;
-   Float_t summax=8000;
-   Float_t sumbin=800;
-
-   {
-      // initialize x_y_diff histogram
-      const char* title[] = {"XL - XR", "YB - YT"};
-      for(int i = 0; i < 2; i++){
-         sprintf(name,"x_y_diff_%i",i);
-         if(i == 0)
-            x_y_diff[i] = new TH1D(name,title[i],diffbin,diffmin,diffmax);
-         if(i == 1)
-            x_y_diff[i] = new TH1D(name,title[i],diffbin,diffmin,diffmax);
-
-         x_y_diff[i]->SetXTitle("Calibrated Time Difference (mm)");
-      }
+   
    }
-
-   {
-      // initialize x_y_diff histogram
-      const char* title[] = {"XL - XR (Silicon Gated)", "YB - YT (Silicon Gated)"};
-      for(int i = 0; i < 2; i++){
-         sprintf(name,"x_y_diff_Gated_%i",i);
-         if(i == 0)
-            x_y_diff_Gated[i] = new TH1D(name,title[i],diffbin,diffmin,diffmax);
-         if(i == 1)
-            x_y_diff_Gated[i] = new TH1D(name,title[i],diffbin,diffmin,diffmax);
-
-         x_y_diff_Gated[i]->SetXTitle("Calibrated Time Difference (mm)");
-      }
-   }
-
-   {
-      // initialize x_y_sum histogram
+   // initialize x_y_sum histogram
+   {     
       const char* title[] = {"XR + XL", "YT + YB"};
       for(int i = 0; i < 2; i++){
-         sprintf(name,"x_y_sum_%i",i);
+         sprintf(name,"hsum_%i",i);
          if(i == 0)
-            x_y_sum[i] = new TH1D(name,title[i],sumbin,summin,summax);
+            hSum[i] = new TH1D(name,title[i],800,0,8000);
          if(i == 1)
-            x_y_sum[i] = new TH1D(name,title[i],sumbin,summin,summax);
+            hSum[i] = new TH1D(name,title[i],800,0,8000);
 
-         x_y_sum[i]->SetXTitle("Time Sums (chan)");
+         hSum[i]->SetXTitle("Time Sums (chan)");
       }
    }
-   /*
-     {
-     // initialize x_y_diff_vs_sum histogram
-     const char*title[] = {"X1R/X1L Diff vs Sum", "Y1B/Y1T Diff vs Sum", "X2R/X2L Diff vs Sum", "Y2B/Y2T Diff vs Sum"};
-     for(int i = 0; i < 2; i++){
-     sprintf(name,"x_y_diff_vs_sum_%i",i);
-     if(i == 0)
-     x_y_diff_vs_sum[i] = new TH2D(name,title[i],sumbin,summin,summax,diffbin,diffmin,diffmax);
-     if(i == 1)
-     x_y_diff_vs_sum[i] = new TH2D(name,title[i],sumbin,summin,summax,diffbin,diffmin,diffmax);
-
-     x_y_diff_vs_sum[i]->SetXTitle("Cathode Time Sum (chan)");
-     x_y_diff_vs_sum[i]->SetYTitle("Cathode Time Differecnce (chan)");
-     }
-     }
-   */
-   {
-      // initialize x position histogram
-      hXPosition = new TH1D("hXPosition","XPosition",166,-83,83);
-   }
-
-   {
-      // initialize y position histogram
-      hYPosition = new TH1D("hYPosition","YPosition",66,-33,33);
-   }
-
-   {
-      // initialize xy position histogram
-      hXYPosition = new TH2D("hXYPosition","XYPosition",166,-83,83,66,-33,33);
-   }
-
-   {
-      // initialize x position histogram
-      hXPosition_Gated = new TH1D("hXPosition_Gated","XPosition Silicon Gated",166,-83,83);
-   }
-
-   {
-      // initialize y position histogram
-      hYPosition_Gated = new TH1D("hYPosition_Gated","YPosition Silicon Gated",66,-33,33);
-   }
-
-
-   {
-      // initialize xy position histogram
-      hXYPosition_Gated = new TH2D("hXYPosition_Gated","XYPosition Silicon Gated",166,-83,83,66,-33,33);
-   }
-
-   {
-      hSienergy = new TH1D("hSienergy","Si_Energy",4096,-1,4096);
-   }
-
-   {
-      const char*title[] = {"Anode Top Energy", "Anode Middle Energy", "Anode Bottom Energy", "Silicon Energy","SB Left","SB Right"};
-      for(int i = 0; i < 6; i++){
-         sprintf(name,"ADC_Used_%i",i);
-
-         hADC_used[i] = new TH1D(name,title[i],511,1,2048);
-         hADC_used[i]->SetXTitle("Energy");
-         hADC_used[i]->SetYTitle("Counts");
+   // initialize 1D position histogram
+   {      
+      const char* title[] = {"X Position", "Y Position"};
+      for(int i = 0; i < 2; i++){
+	 sprintf(name,"h1DPosition_%i",i);
+	if(i == 0) {
+            h1DPosition[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPosition[i]->SetXTitle("X Position (mm)");
+	}
+        if(i == 1) {
+            h1DPosition[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPosition[i]->SetXTitle("Y Position (mm)");
+	}
       }
    }
 
    {
-      hdE_E = new TH2D("hdE_E","#Delta E-E",512,-1,2047,512,-1,2047);
+      // initialize 2D position histogram
+      h2DPosition = new TH2D("h2DPosition","2D Position",166,-83,83,66,-33,33);
+      h2DPosition->SetXTitle("X Position (mm)");
+      h2DPosition->SetYTitle("Y Position (mm)");
    }
 
    {
-      hmulti_at = new TH1D("hmulti_at","Anode Top Multiplicity",20,0,20);
+      // initialize 1D position histograms (Gated)
+      const char* title[] = {"X Position Gated", "Y Position Gated"};
+      for(int i = 0; i < 2; i++){
+	 sprintf(name,"h1DPositionGated_%i",i);
+	if(i == 0) {
+            h1DPositionGated[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPositionGated[i]->SetXTitle("X Position (mm)");
+	}
+        if(i == 1) {
+            h1DPositionGated[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPositionGated[i]->SetXTitle("X Position (mm)");
+	}
+      }
    }
 
    {
-      hmulti_am = new TH1D("hmulti_am","Anode Middle Multiplicity",20,0,20);
+      // initialize 2D position histogram (Gated)
+      h2DPositionGated = new TH2D("h2DPosition_Gated","2D Position Gated",166,-83,83,66,-33,33);
+      h2DPositionGated->SetXTitle("X Position (mm)");
+      h2DPositionGated->SetYTitle("Y Position (mm)");
    }
 
    {
-      hmulti_ab = new TH1D("hmulti_ab","Anode Bottom Multiplicity",20,0,20);
+      // initialize rftof histogram
+      hrft = new TH1D("hrft","Corrected RF-TOF",200,1200,2400);
    }
 
    {
-      hmulti_xr = new TH1D("hmulti_xr","Cathode Right Multiplicity",20,0,20);
+      // initialize anode total energy histogram
+      hAnodeEnergy = new TH1D("hAnodeEnergy","Total Anode Energy",511,1,2048);
+   }
+   {
+      // initialize first PID histogram
+      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Silicon vs AnodeEnergy",512,-1,2047,512,-1,2047);
    }
 
    {
-      hmulti_xl = new TH1D("hmulti_xl","Cathode Left Multiplicity",20,0,20);
+      // initialize second PID histogram
+      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF",512,-1,2047,512,-1,2047);
    }
 
    {
-      hmulti_yt = new TH1D("hmulti_yt","Cathode Top Multiplicity",20,0,20);
+      // initialize multiplicity histograms
+      const char* title[] = {"Anode Top", "Anode Middle", "Anode Bottom", "RF" , "Cathode Left", "Cathode Right", "Cathode Top", "Cathode Botttom" };
+      for(int i = 0; i < 8; i++){
+	 sprintf(name,"hMulti_%i",i);
+	 hMulti[i] = new TH1D(name,title[i],20,0,20);
+      }
    }
-
-   {
-      hmulti_yb = new TH1D("hmulti_yb","Cathode Bottom Multiplicity",20,0,20);
-   }
-
-   {
-      hmulti_trig = new TH1D("hmulti_trig","Trigger Multiplicity",20,0,20);
-   }
-
-   {
-      hRF = new TH1D("hRF","RF",1000,15000,25000);
-   }
-
-   {
-      hsbr = new TH1D("hsbr","SB Right",2000,0,2000);
-   }
-
-   {
-      hsbl = new TH1D("hsbl","SB Left",2000,0,2000);
-   }
-
-} //end EmmaModule
+} //end EmmaModule Constructor
 
 EmmaModule::~EmmaModule()
 {
    printf("EmmaModule::dtor!\n");
 
-   DELETE(fCanvasTdcRaw);
-   DELETE(fCanvasTdcUsed);
-   //      DELETE(fCanvasAdcRaw);
-   DELETE(fCanvasXYDiffs);
-   DELETE(fCanvasXYDiffsGated);
-   DELETE(fCanvasXYSums);
-   //      DELETE(fCanvasDiffVsSum);
-   DELETE(fCanvasXYPositions);
-   DELETE(fCanvasXYPositions_Gated);
-   DELETE(fCanvasXPosition);
-   DELETE(fCanvasXPosition_Gated);
-   DELETE(fCanvasYPosition);
-   DELETE(fCanvasYPosition_Gated);
-   DELETE(fCanvasEnergy);
-   DELETE(fCanvasdE_E);
-   DELETE(fCanvasAnodeMulti);
-   DELETE(fCanvasCathodeMulti);
-   DELETE(fCanvasRF);
-   DELETE(fCanvasSSB);
+   DELETE(fCanvasSums);
+   DELETE(fCanvas1DPosition);
+   DELETE(fCanvas2DPosition);
+   DELETE(fCanvas1DPositionGated);
+   DELETE(fCanvas2DPositionGated);
+   DELETE(fCanvasEnergySpectra);
+   DELETE(fCanvasPID1);
+   DELETE(fCanvasPID2);
+   DELETE(fCanvasMulti);
 
-} //end ~EmmaModule
+} //end ~EmmaModule Destructor
 
 void EmmaModule::ResetHistograms()
 {
@@ -276,41 +164,32 @@ void EmmaModule::ResetHistograms()
       fHAdcRaw[i]->Reset();
    }
 
-   //  for (int i=0; i<9; i++) {
-   //     hTdcUsed[i]->Reset();
-   // }
+  for (int i=0; i<2; i++) {
+      hSum[i]->Reset();
+   }   
 
-   for(int i =0; i < 2; i++) {
-      x_y_diff[i]->Reset();
-      x_y_diff_Gated[i]->Reset();
-      x_y_sum[i]->Reset();
-      x_y_diff_vs_sum[i]->Reset();
+  for (int i=0; i<2; i++) {
+      h1DPosition[i]->Reset();
    }
 
-   for(int i =0; i < 6; i++) {
-      hADC_used[i]->Reset();
+   h2DPosition->Reset();
+
+  for (int i=0; i<2; i++) {
+      h1DPositionGated[i]->Reset();
    }
 
-   hSienergy->Reset();
-   hdE_E->Reset();
-   hXPosition->Reset();
-   hXPosition_Gated->Reset();
-   hYPosition->Reset();
-   hYPosition_Gated->Reset();
-   hXYPosition->Reset();
-   hXYPosition_Gated->Reset();
-   hRF->Reset();
-   hsbl->Reset();
-   hsbr->Reset();
+   h2DPositionGated->Reset();
 
-   hmulti_at->Reset();
-   hmulti_am->Reset();
-   hmulti_ab->Reset();
-   hmulti_xr->Reset();
-   hmulti_xl->Reset();
-   hmulti_yt->Reset();
-   hmulti_yb->Reset();
-   hmulti_trig->Reset();
+   hAnodeEnergy->Reset();
+
+   hSiliconAnodeEnergy->Reset();
+
+   hAnodeEnergyRFTOF->Reset();
+
+   for (int i=0; i<8; i++) {
+      hMulti[i]->Reset();
+   }
+
 
 } //end ResetHistograms
 
@@ -348,32 +227,23 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
 
    printf("tscheck: ADC %.0f, TDC %.0f\n", adc_dt, tdc_dt);
 
-   fHAdcTime0->Fill(adc_dt);
-   fHTdcTime0->Fill(tdc_dt);
-   fHAdcTime1->Fill(adc_dt);
-   fHTdcTime1->Fill(tdc_dt);
-   fHAdcTime2->Fill(adc_dt);
-   fHTdcTime2->Fill(tdc_dt);
-   fHAdcTdcTime->Fill(adc_dt - tdc_dt);
-
-   std::vector<int> anode_pathway(9,0);
    std::vector<double> earliest_times(64,999999);
-   std::vector<int> counts(64,0);
-   Double_t datum[64][20] = {{0}};
+   std::vector<double> counts(64,0);
 
+   Int_t tdchit = 0; // for TDC
 
    //double tdc_bin = 0.01; // 100ps V1190
    int tdc_trig_chan = 7;
+
    Double_t xloffset = 40.0; // 4 ns cable delay for XL
    Double_t xroffset = 20.0; // 2 ns cable delay for XR
    Double_t yboffset = 20.0; // 2 ns cable delay for YB
    Double_t ytoffset = 10.0; // 1 ns cable delay for YT
-   Int_t hit = 0;
-   Int_t tdchit = 0; // for TDC
+   
 
    if (runinfo->fRunNo >= 202) {
       //tdc_bin = 0.025; // 25ps V1290
-      tdc_trig_chan = 7*4; // 28
+      tdc_trig_chan = 28;
    }
 
    int tdc_trig = 0;
@@ -389,15 +259,10 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
 
    printf("tdc_trig %d\n", tdc_trig);
 
-   fHTdcTrig->Fill(tdc_trig);
+   //fHTdcTrig->Fill(tdc_trig);
 
    int chan = -1;
-   // Seems to be some noise in the measurements.  In the case of multiple
-   // measurements for the same channel, get the earliest measurement.
-   //    double a1m_earliest = 9999999.0, a2m_earliest = 9999999.0;
-   // Vector of the earliest TDC time for each channel
-   //    std::vector<double> a1_pulse_time(10,-1.0);
-   //    int a1_counter = 0;
+   
    for(unsigned int i = 0; i < tdc_data->hits.size(); i++){ // loop over measurements
       if (tdc_data->hits[i].trailing) // skip trailing edge hits
          continue;
@@ -407,10 +272,8 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
          printf("chan %d, time %f\n", chan, t);
          fHTdcRaw[chan]->Fill(t);
       }
+
       counts[chan] = counts[chan] + 1;
-
-
-
 
       if (chan==32 && tdchit==2){
          trf = t;
@@ -419,14 +282,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
       if (chan==32 && tdchit==3){
          trf_next = t;
       }
-      printf("chan %i\n", chan);
-      printf("hit %d\n", hit);
-      printf("tdchit %d\n", tdchit);
 
-
-      datum[chan][hit] = t;
-
-      hit++;
       if (chan==32) {
          tdchit++;
       }
@@ -434,14 +290,10 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
       if(t < earliest_times[chan])
          earliest_times[chan] = t;
    }
-   //datum[chan][hit] = t;
-
-   // printf("Hits %d\n", hit);
-
-   Double_t xsum, xdiff, xpos, ysum, ydiff, ypos;
 
    // Get earliest time for anode (if more than one)
    anode = 999999.0;
+
    for (int j=0; j<3; j++) {
       if (earliest_times[j*4] < anode)
          anode = earliest_times[j*4];
@@ -455,17 +307,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    yt = earliest_times[20];
    yb = earliest_times[24];
    trig = earliest_times[28];
-
-   //for (int i=0; i<20; i++) {
-   //	trf[i] = datum[32][i];
-   //printf("trf %f\n", trf[i]);
-   //}
-
-   //		trf = datum[32][4];
-   if (am<999999) {
-      printf("trf %f\n", trf);
-      printf("anode %f\n", anode);
-   }
+/*
    multi_at = counts[0];
    multi_am = counts[4];
    multi_ab = counts[8];
@@ -473,27 +315,21 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    multi_xl = counts[16];
    multi_yt = counts[20];
    multi_yb = counts[24];
-   multi_trig = counts[28];
+   multi_rf = counts[32];
+*/
+  for (int i=0; i<8; i++) {
 
-   printf("Multi %d\n", multi_xr);
-
-   hmulti_at->Fill(multi_at);
-   hmulti_am->Fill(multi_am);
-   hmulti_ab->Fill(multi_ab);
-   hmulti_xr->Fill(multi_xr);
-   hmulti_xl->Fill(multi_xl);
-   hmulti_yt->Fill(multi_yt);
-   hmulti_yb->Fill(multi_yb);
-   hmulti_trig->Fill(multi_trig);
+   hMulti[i]->Fill(counts[i*4]);
+  
+  }
 
    xsum = xl + xr - 2*anode;
    xdiff = (xl + xloffset) - (xr + xroffset);
    xpos = 80*(xdiff/xsum);
 
    if( xl<999999 && xr<999999 ){
-      x_y_diff[0]->Fill(xdiff*0.0222);
-      x_y_sum[0]->Fill(xsum);
-      hXPosition->Fill(xpos);
+      hSum[0]->Fill(xsum);
+      h1DPosition[0]->Fill(xpos);
    }
 
    ysum = yb + yt - 2*anode;
@@ -501,20 +337,24 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    ypos = 30*(ydiff/ysum);
 
    if( yt<999999 && yb<999999 ){
-      x_y_diff[1]->Fill(ydiff*0.0226);
-      x_y_sum[1]->Fill(ysum);
-      hYPosition->Fill(ypos);
+      hSum[1]->Fill(ysum);
+      h1DPosition[1]->Fill(ypos);
    }
 
    if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 ){
-      hXYPosition->Fill(xpos,ypos);
+      h2DPosition->Fill(xpos,ypos);
    }
+
+   rftof = trf - anode;
+   rft = rftof - 867.*(rftof > 2250.);
+
+   hrft->Fill(rft);
 
 
    //*******ADC DATA COUNTING***************
-   //Make a vector of vectors to have each channel be a dynanmically expanding collection of energies
-   //std::vector< std::vector<double> > energy_signals(n_ach, std::vector<double>);
-   std::vector<double> energy_signals(32, 0);
+ 
+   std::vector<double> energy(32, 0);
+   std::vector<int> adchit(32,0);
 
    //for each event in the ADC event structure
    for (unsigned int i=0; i < adc_data->hits.size(); i++){
@@ -528,55 +368,37 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
             fHAdcRaw[chan]->Fill(adc_data->hits[i].adc_data);
       }
 
-      for (int j=0; j < 6; j++){
-         if (ach[j] == chan ) {
-            double energy = 1.0*adc_data->hits[i].adc_data;
+      adchit[chan] = adchit[chan] + 1;
 
-            hADC_used[j]->Fill(energy);
-
-            energy_signals[chan] =energy;
-
-         }
-      }//end chan == ADC_used check
+      energy[chan] = adc_data->hits[i].adc_data;
 
    }//end foreach ADC event
 
-   Sienergy = energy_signals[16];
-   ATenergy = energy_signals[0];
-   AMenergy = energy_signals[1];
-   ABenergy = energy_signals[2];
+   ATenergy = energy[0];
+   AMenergy = energy[1];
+   ABenergy = energy[2];
+   AnodeEnergy = ATenergy + ABenergy + AMenergy;
 
-   sbl_ene = energy_signals[18];
-   sbr_ene = energy_signals[20];
+   Sienergy = energy[16];
+   sbl_ene = energy[18];
+   sbr_ene = energy[20];
 
-   hSienergy->Fill(Sienergy);
+   hAnodeEnergy->Fill(AnodeEnergy);
+   hSiliconAnodeEnergy->Fill(Sienergy,AnodeEnergy);
+   hAnodeEnergyRFTOF->Fill(rft,AnodeEnergy);
 
    if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
-      x_y_diff_Gated[0]->Fill(xdiff*0.02);
-      hXPosition_Gated->Fill(xpos);
+      h1DPositionGated[0]->Fill(xpos);
    }
+
    if( yt<999999 && yb<999999 && Sienergy>800 && Sienergy<1100){
-      x_y_diff_Gated[1]->Fill(ydiff*0.02);
-      hYPosition_Gated->Fill(ypos);
+      h1DPositionGated[1]->Fill(ypos);
    }
    if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>800 && Sienergy<1100 ) {
-      hXYPosition_Gated->Fill(xpos,ypos);
+     h2DPositionGated->Fill(xpos,ypos);
    }
 
-   PGACenergy = ATenergy + ABenergy + AMenergy;
-
-   hdE_E->Fill(Sienergy,PGACenergy);
-
-   hRF->Fill(trf);
-
-   hsbl->Fill(sbl_ene);
-   hsbr->Fill(sbr_ene);
-
    t1->Fill();
-
-   //for (int i=0; i<hit; i++) {
-   //              trf[i] = 0;
-   //	}
 
 } //end UpdateHistograms
 
@@ -584,225 +406,112 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
 {
    printf("PlotHistograms!\n");
 
-   {
-      TCanvas* c1 = fCanvasTdcRaw;
-      c1->Clear();
-      c1->Divide(2,2);
-      for(int i = 0; i < 4; i++){
-         c1->cd(1+i);
-         fHTdcRaw[i*4]->Draw();
-      }
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasTdcUsed;
-      c1->Clear();
-      c1->Divide(3,3);
-      for(int i = 0; i < 9; i++){
-         c1->cd(1+i);
-         fHTdcRaw[i*4]->Draw();
-      }
-      c1->Modified();
-      c1->Update();
-   }
-
-
-   /*     if (fCanvasAdcRaw) {
-          fCanvasAdcRaw->Clear();
-          fCanvasAdcRaw->Divide(2,2);
-
-          int p=0;
-          for (int i=0; i<3; i++) {
-          fCanvasAdcRaw->cd(++p);
-          fHAdcRaw[i]->Draw();
-          }
-          fCanvasAdcRaw->cd(4);
-          fHAdcRaw[16]->Draw();
-
-          fCanvasAdcRaw->Modified();
-          fCanvasAdcRaw->Update();
-          printf("update!\n");
-          }
-   */
-   // plot xy diff
-   {
-      TCanvas* c1 = fCanvasXYDiffs;
-      c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-         x_y_diff[i]->Draw();
-      }
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasXYDiffsGated;
-      c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-         x_y_diff_Gated[i]->Draw();
-      }
-      c1->Modified();
-      c1->Update();
-   }
    // plot xy sums
    {
-      TCanvas* c1 = fCanvasXYSums;
+      TCanvas* c1 = fCanvasSums;
       c1->Clear();
       c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
-         x_y_sum[i]->Draw();
+         hSum[i]->Draw();
       }
       c1->Modified();
       c1->Update();
    }
-   // Plot X position
+   // Plot 1D Position
    {
-      TCanvas* c1 = fCanvasXPosition;
-      c1->Clear();
-      hXPosition->Draw();
-      c1->Modified();
-      c1->Update();
-   }
-   // Plot Y position
-   {
-      TCanvas* c1 = fCanvasYPosition;
-      c1->Clear();
-      hYPosition->Draw();
-      c1->Modified();
-      c1->Update();
-   }
-   // Plot XY position
-   {
-      TCanvas* c1 = fCanvasXYPositions;
-      c1->Clear();
-      hXYPosition->Draw("colz");
-      c1->Modified();
-      c1->Update();
-   }
-   // Plot X position Gated
-   {
-      TCanvas* c1 = fCanvasXPosition_Gated;
-      c1->Clear();
-      hXPosition_Gated->Draw();
-      c1->Modified();
-      c1->Update();
-   }
-   // Plot Y position Gated
-   {
-      TCanvas* c1 = fCanvasYPosition_Gated;
-      c1->Clear();
-      hYPosition_Gated->Draw();
-      c1->Modified();
-      c1->Update();
-   }
-   // Plot XY position Gated
-   {
-      TCanvas* c1 = fCanvasXYPositions_Gated;
-      c1->Clear();
-      hXYPosition_Gated->Draw("colz");
-      c1->Modified();
-      c1->Update();
-   }
-
-   /*     {
-          TCanvas* c1 = fCanvasDiffVsSum;
-          c1->Clear();
-          if(!(c1->GetShowEventStatus()))c1->ToggleEventStatus();
-          if(!(c1->GetShowToolBar()))c1->ToggleToolBar();
-          c1->Divide(1,2);
-          for(int i = 0; i < 2; i++){
-          c1->cd(1+i);
-          x_y_diff_vs_sum[i]->Draw("colz");
-          }
-          c1->Modified();
-          c1->Update();
-          }
-   */
-   {
-      TCanvas* c1 = fCanvasEnergy;
-      c1->Clear();
-      c1->Divide(2,3);
-      for(int i = 0; i < 6; i++){
-         c1->cd(1+i);
-         hADC_used[i]->Draw();
-      }
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasdE_E;
-      c1->Clear();
-      hdE_E->Draw("colz");
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasAnodeMulti;
-      c1->Clear();
-      c1->Divide(2,2);
-
-      c1->cd(1);
-      hmulti_at->Draw();
-      c1->cd(2);
-      hmulti_am->Draw();
-      c1->cd(3);
-      hmulti_ab->Draw();
-      c1->cd(4);
-      hmulti_trig->Draw();
-
-      c1->Modified();
-      c1->Update();
-   }
-
-
-   {
-      TCanvas* c1 = fCanvasCathodeMulti;
-      c1->Clear();
-      c1->Divide(2,2);
-
-      c1->cd(1);
-      hmulti_xr->Draw();
-      c1->cd(2);
-      hmulti_xl->Draw();
-      c1->cd(3);
-      hmulti_yt->Draw();
-      c1->cd(4);
-      hmulti_yb->Draw();
-
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasRF;
-      c1->Clear();
-      hRF->Draw();
-      c1->Modified();
-      c1->Update();
-   }
-
-   {
-      TCanvas* c1 = fCanvasSSB;
+      TCanvas* c1 = fCanvas1DPosition;
       c1->Clear();
       c1->Divide(1,2);
+      for(int i = 0; i < 2; i++){
+         c1->cd(1+i);
+          h1DPosition[i]->Draw();
+      }
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 2D Position
+   {
+      TCanvas* c1 = fCanvas2DPosition;
+      c1->Clear();
+      h2DPosition->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 1D Position Gated
+   {
+      TCanvas* c1 = fCanvas1DPositionGated;
+      c1->Clear();
+      for(int i = 0; i < 2; i++){
+         c1->cd(1+i);
+          h1DPositionGated[i]->Draw();
+      }
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot 2D Position Gated
+   {
+      TCanvas* c1 = fCanvas2DPositionGated;
+      c1->Clear();
+      h2DPositionGated->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot all Energy Spectra
+   {
+      TCanvas* c1 = fCanvasEnergySpectra;
+
+      c1->Clear();
+      c1->Divide(2,3);
+
       c1->cd(1);
-      hsbr->Draw();
+      fHAdcRaw[0]->Draw();
       c1->cd(2);
-      hsbl->Draw();
+      fHAdcRaw[1]->Draw();
+      c1->cd(3);
+      fHAdcRaw[2]->Draw();
+      c1->cd(4);
+      fHAdcRaw[16]->Draw();
+      c1->cd(5);
+      fHAdcRaw[18]->Draw();
+      c1->cd(6);
+      fHAdcRaw[20]->Draw();
+      
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot Silicon Energy vs Anode Energy (PID1)
+   {
+      TCanvas* c1 = fCanvasPID1;
+      c1->Clear();
+      hSiliconAnodeEnergy->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot Anode Energy vs RF-TOF (PID2)
+   {
+      TCanvas* c1 = fCanvasPID2;
+      c1->Clear();
+      hAnodeEnergyRFTOF->Draw("colz");
+      c1->Modified();
+      c1->Update();
+   }
+   // Plot Multiplicity
+   {
+      TCanvas* c1 = fCanvasMulti;
+      c1->Clear();
+      c1->Divide(2,4);
+
+      for(int i = 0; i < 8; i++){
+         c1->cd(1+i);
+          hMulti[i]->Draw();
+      }
+      
       c1->Modified();
       c1->Update();
    }
 
-}
+} // End Plot Histigrams
 
 
 void EmmaModule::BeginRun(TARunInfo* runinfo)
@@ -827,7 +536,7 @@ void EmmaModule::BeginRun(TARunInfo* runinfo)
    t1->Branch("ATenergy",&ATenergy,"ATenergy/D");
    t1->Branch("AMenergy",&AMenergy,"AMenergy/D");
    t1->Branch("ABenergy",&ABenergy,"ABenergy/D");
-   t1->Branch("PGACenergy",&PGACenergy,"PGACenergy/D");
+   t1->Branch("PGACenergy",&AnodeEnergy,"AnodeEnergy/D");
    t1->Branch("Sienergy",&Sienergy,"Sienergy/D");
    t1->Branch("trf",&trf,"trf/D");
    t1->Branch("trf_next",&trf_next,"trf_next/D");
@@ -902,8 +611,6 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
                   }
                }
 
-               fHTdcNhits->Fill(te->hits.size());
-
                if (!xte) {
                   xte = te;
                } else {
@@ -916,6 +623,96 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
       }
    }
 
+   /*    {
+         TMBank* b = event->FindBank("AAAA");
+
+         if (b) {
+         int bklen = b->data_size;
+         const char* bkptr = event->GetBankData(b);
+
+         if (bkptr) {
+         //printf("EMMA ADC, pointer: %p, len %d\n", bkptr, bklen);
+
+         Alpha16Packet *ap = new Alpha16Packet();
+         ap->Unpack(bkptr, bklen);
+         //ap->Print();
+
+         Alpha16Waveform *aw = new Alpha16Waveform();
+         aw->Unpack(bkptr, bklen);
+
+         if (ap->channelId == 0) {
+         printf("EMMA ADC, timestamp %d, channel 0\n", ap->eventTimestamp);
+
+         double adc_offset = 0;
+
+         if (runinfo->fRunNo == 73)
+         adc_offset = -166696*800;
+
+         if (runinfo->fRunNo == 84)
+         adc_offset = -166696*800;
+
+         if (runinfo->fRunNo == 112) { // TDC sn 364629, ADC sn 1459242/364810
+         //adc_offset = (-2067919-1056035)*800;
+         // TDC 1142, ADC 6614/1653 -> diff
+
+         adc_offset = (1973667-34439772+259169+1973667)*800.0; // TDC 581940, ADC 2327722/581930
+         }
+
+         const double adc_clk = 9.9987; //10.0;
+         static int old_ts = 0;
+         double xts = ap->eventTimestamp*adc_clk + adc_offset;
+
+         printf("EMMA ADC sn %d %d, delta %5d, ts %d\n", event->serial_number, event->serial_number/4, (int)(((ap->eventTimestamp - old_ts)*adc_clk)/800.0), (int)(xts/800.0));
+         old_ts = ap->eventTimestamp;
+
+         if (0 && runinfo->fRoot->fgApp) {
+         TCanvas *c = new TCanvas();
+         c->cd();
+         TH1D* hw = new TH1D("adc0", "adc0", ap->nsamples, 0, ap->nsamples);
+         for (int i=0; i<ap->nsamples; i++)
+         hw->SetBinContent(i+1, (*aw)[i]);
+         hw->Draw();
+         c->Modified();
+         c->Draw();
+         }
+         }
+   */
+   /*               if (ap->channelId == 1) {
+                    printf("EMMA ADC, timestamp %d, channel 1\n", ap->eventTimestamp);
+
+                    static TH1D* hw = NULL;
+                    if (!hw)
+                    hw = new TH1D("adc1", "adc1", ap->nsamples, 0, ap->nsamples);
+                    for (int i=0; i<ap->nsamples; i++)
+                    hw->SetBinContent(i+1, (*aw)[i]);
+                    double SiEnergy = hw->GetMaximum();
+                    if (SiEnergy < 0 ) SiEnergy = -1;
+                    UpdateSiEnergyRawHist(SiEnergy);
+
+                    if (runinfo->fRoot->fgApp) {
+                    static TCanvas *c = NULL;
+                    if (!c)
+                    c = new TCanvas();
+                    c->Clear();
+                    c->cd();
+                    hw->SetMinimum(-12000);
+                    hw->SetMaximum(12000);
+                    hw->Draw();
+                    c->Modified();
+                    c->Draw();
+                    c->Update();
+
+                    if (runinfo->fRoot->fgApp)
+                    runinfo->fRoot->fgApp->Run(kTRUE);
+                    }
+                    }
+
+                    delete ap;
+                    delete aw;
+                    }
+                    }
+                    }
+   */
    {
       TMBank* b = event->FindBank("MADC");
 
@@ -931,8 +728,6 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
                if (ae == NULL)
                   break;
                ae->Print();
-
-               fHAdcNhits->Fill(ae->hits.size());
 
                if (0) {
                   static int prevts = 0;

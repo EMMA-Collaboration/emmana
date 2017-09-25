@@ -51,97 +51,73 @@ public:
    int ct;
    int ach[6] = {0, 1, 2, 16, 18, 20};
 
-   TH1D *fHTdcTrig;
    TH1D *fHTdcRaw[64];
    TH1D *fHAdcRaw[32];
-   TH1D *hSienergy;
-   TH1D *hADC_used[6];
-   TH1D *hATenergy;
-   TH1D *hAMenergy;
-   TH1D *hABenergy;
-   TH1D *hPGACenergy;
-   TH2D *hdE_E;
-   TH1D *x_y_diff[2];
-   TH1D *x_y_diff_Gated[2];
-   TH1D *x_y_sum[2];
-   TH2D *x_y_diff_vs_sum[2];
-   TH1D *hXPosition;
-   TH1D *hXPosition_Gated;
-   TH1D *hYPosition;
-   TH1D *hYPosition_Gated;
-   TH2D *hXYPosition;
-   TH2D *hXYPosition_Gated;
-   TH1D *hRF;
-   TH1D *hsbl;
-   TH1D *hsbr;
-
-   TH1D *hmulti_at;
-   TH1D *hmulti_am;
-   TH1D *hmulti_ab;
-   TH1D *hmulti_xr;
-   TH1D *hmulti_xl;
-   TH1D *hmulti_yt;
-   TH1D *hmulti_yb;
-   TH1D *hmulti_trig;
+   TH1D *hAnodeEnergy;
+   TH1D *hSum[2];
+   TH1D *h1DPosition[2];
+   TH1D *h1DPositionGated[2];  
+   TH2D *h2DPosition;
+   TH2D *h2DPositionGated;
+   TH2D *hSiliconAnodeEnergy;
+   TH2D *hAnodeEnergyRFTOF;
+   TH1D *hrft;
+   TH1D *hMulti[8];
 
    TCanvas* fCanvasTdcRaw;
-   TCanvas* fCanvasTdcUsed;
    TCanvas* fCanvasAdcRaw;
-   TCanvas* fCanvasXYDiffs;
-   TCanvas* fCanvasXYDiffsGated;
-   TCanvas* fCanvasXYSums;
-   TCanvas* fCanvasDiffVsSum;
-   TCanvas* fCanvasXPosition;
-   TCanvas* fCanvasXPosition_Gated;
-   TCanvas* fCanvasYPosition;
-   TCanvas* fCanvasYPosition_Gated;
-   TCanvas* fCanvasXYPositions;
-   TCanvas* fCanvasXYPositions_Gated;
-   TCanvas* fCanvasEnergy;
-   TCanvas* fCanvasdE_E;
-   TCanvas* fCanvasAnodeMulti;
-   TCanvas* fCanvasCathodeMulti;
-   TCanvas* fCanvasRF;
-   TCanvas* fCanvasSSB;
-
-   TH1D*    fHTdcNhits = NULL;
-   TH1D*    fHAdcNhits = NULL;
-   TH1D*    fHAdcTime0 = NULL;
-   TH1D*    fHTdcTime0 = NULL;
-   TH1D*    fHAdcTime1 = NULL;
-   TH1D*    fHTdcTime1 = NULL;
-   TH1D*    fHAdcTime2 = NULL;
-   TH1D*    fHTdcTime2 = NULL;
-   TH1D*    fHAdcTdcTime = NULL;
+   TCanvas* fCanvasSums;
+   TCanvas* fCanvas1DPosition;
+   TCanvas* fCanvas1DPositionGated;
+   TCanvas* fCanvas2DPosition;
+   TCanvas* fCanvas2DPositionGated;
+   TCanvas* fCanvasEnergySpectra;
+   TCanvas* fCanvasPID1;
+   TCanvas* fCanvasPID2;
+   TCanvas* fCanvasMulti;
 
    Double_t at;
    Double_t am;
    Double_t ab;
    Double_t anode;
+
    Double_t xl;
    Double_t xr;
+   Double_t xsum;
+   Double_t xdiff;
+   Double_t xpos;
+
    Double_t yb;
    Double_t yt;
+   Double_t ysum;
+   Double_t ydiff;
+   Double_t ypos;
+
    Double_t trig;
+
    Double_t Sienergy;
    Double_t ATenergy;
    Double_t AMenergy;
    Double_t ABenergy;
-   Double_t PGACenergy;
-   Double_t trf;
-   Double_t trf_next;
+   Double_t AnodeEnergy;
    Double_t sbl_ene;
    Double_t sbr_ene;
 
+   Double_t trf;
+   Double_t trf_next;
+
+   Double_t rftof;
+   Double_t rft;
+/*
    Int_t multi_at;
    Int_t multi_am;
    Int_t multi_ab;
-   Int_t multi_xr;
    Int_t multi_xl;
+   Int_t multi_xr;
    Int_t multi_yt;
    Int_t multi_yb;
-   Int_t multi_trig;
-
+   Int_t multi_rf;
+*/
    TTree *t1;
 
 }; // end EmmaModule
