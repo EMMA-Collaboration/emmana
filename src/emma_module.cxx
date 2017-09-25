@@ -503,7 +503,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
 
 void EmmaModule::PlotHistograms(TARunInfo* runinfo)
 {
-//   gStyle->SetOptStat("eMRi");
+   gStyle->SetOptStat("eMRi");
    printf("PlotHistograms!\n");
 
    // plot xy sums
