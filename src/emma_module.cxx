@@ -18,8 +18,14 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fCanvasSums = new TCanvas("XY Sums");
    fCanvas1DPosition = new TCanvas("1D Position");
    fCanvas2DPosition = new TCanvas("2D Position");
-   fCanvas1DPositionGated = new TCanvas("1D Position Gated");
-   fCanvas2DPositionGated = new TCanvas("2D Position Gated");
+   fCanvas1DPositionSiliconGated = new TCanvas("1D Position Silicon Gated");
+   fCanvas2DPositionSiliconGated = new TCanvas("2D Position Silicon Gated");
+   fCanvas1DPositionAnodeGated = new TCanvas("1D Position Anode Gated");
+   fCanvas2DPositionAnodeGated = new TCanvas("2D Position Anode Gated");
+   fCanvas1DPositionRFTOFGated = new TCanvas("1D Position RFTOF Gated");
+   fCanvas2DPositionRFTOFGated = new TCanvas("2D Position RFTOF Gated");
+   fCanvas1DPositionPID2Gated = new TCanvas("1D Position Anode-RFTOF Gated (PID2)");
+   fCanvas2DPositionPID2Gated = new TCanvas("2D Position Anode-RFTOF Gated (PID2)");
    fCanvasEnergySpectra = new TCanvas("Energy Spectra");
    fCanvasPID1 = new TCanvas("Silicon vs Anode Energy");
    fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy");
@@ -87,26 +93,95 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
 
    {
-      // initialize 1D position histograms (Gated)
-      const char* title[] = {"X Position Gated", "Y Position Gated"};
+      // initialize 1D position histograms (Silicon Gated)
+      const char* title[] = {"X Position Silicon Gated", "Y Position Silicon Gated"};
       for(int i = 0; i < 2; i++){
-	 sprintf(name,"h1DPositionGated_%i",i);
+	 sprintf(name,"h1DPositionSiliconGated_%i",i);
 	if(i == 0) {
-            h1DPositionGated[i] = new TH1D(name,title[i],166,-83,83);
-	    h1DPositionGated[i]->SetXTitle("X Position (mm)");
+            h1DPositionSiliconGated[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPositionSiliconGated[i]->SetXTitle("X Position (mm)");
 	}
         if(i == 1) {
-            h1DPositionGated[i] = new TH1D(name,title[i],66,-33,33);
-	    h1DPositionGated[i]->SetXTitle("X Position (mm)");
+            h1DPositionSiliconGated[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPositionSiliconGated[i]->SetXTitle("Y Position (mm)");
 	}
       }
    }
 
    {
-      // initialize 2D position histogram (Gated)
-      h2DPositionGated = new TH2D("h2DPosition_Gated","2D Position Gated",166,-83,83,66,-33,33);
-      h2DPositionGated->SetXTitle("X Position (mm)");
-      h2DPositionGated->SetYTitle("Y Position (mm)");
+      // initialize 2D position histogram (Silicon Gated)
+      h2DPositionSiliconGated = new TH2D("h2DPositionSiliconGated","2D Position Silicon Gated",166,-83,83,66,-33,33);
+      h2DPositionSiliconGated->SetXTitle("X Position (mm)");
+      h2DPositionSiliconGated->SetYTitle("Y Position (mm)");
+   }
+
+   {
+      // initialize 1D position histograms (Anode Gated)
+      const char* title[] = {"X Position Anode Gated", "Y Position Anode Gated"};
+      for(int i = 0; i < 2; i++){
+	 sprintf(name,"h1DPositionAnodeGated_%i",i);
+	if(i == 0) {
+            h1DPositionAnodeGated[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPositionAnodeGated[i]->SetXTitle("X Position (mm)");
+	}
+        if(i == 1) {
+            h1DPositionAnodeGated[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPositionAnodeGated[i]->SetXTitle("Y Position (mm)");
+	}
+      }
+   }
+
+   {
+      // initialize 2D position histogram (Anode Gated)
+      h2DPositionAnodeGated = new TH2D("h2DPositionAnodeGated","2D Position Anode Gated",166,-83,83,66,-33,33);
+      h2DPositionAnodeGated->SetXTitle("X Position (mm)");
+      h2DPositionAnodeGated->SetYTitle("Y Position (mm)");
+   }
+
+   {
+      // initialize 1D position histograms (RFTOF Gated)
+      const char* title[] = {"X Position RF-TOF Gated", "Y Position RF-TOF Gated"};
+      for(int i = 0; i < 2; i++){
+	 sprintf(name,"h1DPositionRFTOFGated_%i",i);
+	if(i == 0) {
+            h1DPositionRFTOFGated[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPositionRFTOFGated[i]->SetXTitle("X Position (mm)");
+	}
+        if(i == 1) {
+            h1DPositionRFTOFGated[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPositionRFTOFGated[i]->SetXTitle("Y Position (mm)");
+	}
+      }
+   }
+
+   {
+      // initialize 2D position histogram (RFTOF Gated)
+      h2DPositionRFTOFGated = new TH2D("h2DPositionRFTOFGated","2D Position RF-TOF Gated",166,-83,83,66,-33,33);
+      h2DPositionRFTOFGated->SetXTitle("X Position (mm)");
+      h2DPositionRFTOFGated->SetYTitle("Y Position (mm)");
+   }
+
+   {
+      // initialize 1D position histograms (PID2 Gated)
+      const char* title[] = {"X Position PID2 Gated", "Y Position PID2 Gated"};
+      for(int i = 0; i < 2; i++){
+	 sprintf(name,"h1DPositionPID2Gated_%i",i);
+	if(i == 0) {
+            h1DPositionPID2Gated[i] = new TH1D(name,title[i],166,-83,83);
+	    h1DPositionPID2Gated[i]->SetXTitle("X Position (mm)");
+	}
+        if(i == 1) {
+            h1DPositionPID2Gated[i] = new TH1D(name,title[i],66,-33,33);
+	    h1DPositionPID2Gated[i]->SetXTitle("Y Position (mm)");
+	}
+      }
+   }
+
+   {
+      // initialize 2D position histogram (PID2 Gated)
+      h2DPositionPID2Gated = new TH2D("h2DPositionPID2Gated","2D Position PID2 Gated",166,-83,83,66,-33,33);
+      h2DPositionPID2Gated->SetXTitle("X Position (mm)");
+      h2DPositionPID2Gated->SetYTitle("Y Position (mm)");
    }
 
    {
@@ -145,8 +220,14 @@ EmmaModule::~EmmaModule()
    DELETE(fCanvasSums);
    DELETE(fCanvas1DPosition);
    DELETE(fCanvas2DPosition);
-   DELETE(fCanvas1DPositionGated);
-   DELETE(fCanvas2DPositionGated);
+   DELETE(fCanvas1DPositionSiliconGated);
+   DELETE(fCanvas2DPositionSiliconGated);
+   DELETE(fCanvas1DPositionAnodeGated);
+   DELETE(fCanvas2DPositionAnodeGated);
+   DELETE(fCanvas1DPositionRFTOFGated);
+   DELETE(fCanvas2DPositionRFTOFGated);
+   DELETE(fCanvas1DPositionPID2Gated);
+   DELETE(fCanvas2DPositionPID2Gated);
    DELETE(fCanvasEnergySpectra);
    DELETE(fCanvasPID1);
    DELETE(fCanvasPID2);
@@ -175,10 +256,28 @@ void EmmaModule::ResetHistograms()
    h2DPosition->Reset();
 
   for (int i=0; i<2; i++) {
-      h1DPositionGated[i]->Reset();
+      h1DPositionSiliconGated[i]->Reset();
    }
 
-   h2DPositionGated->Reset();
+   h2DPositionSiliconGated->Reset();
+
+  for (int i=0; i<2; i++) {
+      h1DPositionAnodeGated[i]->Reset();
+   }
+
+   h2DPositionAnodeGated->Reset();
+
+  for (int i=0; i<2; i++) {
+      h1DPositionRFTOFGated[i]->Reset();
+   }
+
+   h2DPositionRFTOFGated->Reset();
+
+  for (int i=0; i<2; i++) {
+      h1DPositionPID2Gated[i]->Reset();
+   }
+
+   h2DPositionPID2Gated->Reset();
 
    hAnodeEnergy->Reset();
 
@@ -189,7 +288,6 @@ void EmmaModule::ResetHistograms()
    for (int i=0; i<8; i++) {
       hMulti[i]->Reset();
    }
-
 
 } //end ResetHistograms
 
@@ -388,16 +486,37 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    hAnodeEnergyRFTOF->Fill(rft,AnodeEnergy);
 
    if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
-      h1DPositionGated[0]->Fill(xpos);
+      h1DPositionSiliconGated[0]->Fill(xpos);
    }
 
    if( yt<999999 && yb<999999 && Sienergy>800 && Sienergy<1100){
-      h1DPositionGated[1]->Fill(ypos);
+      h1DPositionSiliconGated[1]->Fill(ypos);
    }
    if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>800 && Sienergy<1100 ) {
-     h2DPositionGated->Fill(xpos,ypos);
+     h2DPositionSiliconGated->Fill(xpos,ypos);
    }
 
+   if( xl<999999 && xr<999999 && AnodeEnergy>1100 && AnodeEnergy<1300){
+      h1DPositionAnodeGated[0]->Fill(xpos);
+   }
+
+   if( yt<999999 && yb<999999 && AnodeEnergy>1100 && AnodeEnergy<1300){
+      h1DPositionAnodeGated[1]->Fill(ypos);
+   }
+   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && AnodeEnergy>1100 && AnodeEnergy<1300 ) {
+     h2DPositionAnodeGated->Fill(xpos,ypos);
+   }
+
+   if( xl<999999 && xr<999999 && rft>1900 && rft<2200){
+      h1DPositionRFTOFGated[0]->Fill(xpos);
+   }
+
+   if( yt<999999 && yb<999999 && rft>1900 && rft<2200){
+      h1DPositionRFTOFGated[1]->Fill(ypos);
+   }
+   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && rft>1900 && rft<2200 ) {
+     h2DPositionRFTOFGated->Fill(xpos,ypos);
+   }
    t1->Fill();
 
 } //end UpdateHistograms
@@ -568,6 +687,8 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
    v1190event *xte = NULL;
    mesadc32event *xae = NULL;
 
+   // Read TDC Midas Bank
+
    {
       TMBank* b = event->FindBank("EMMT");
 
@@ -623,96 +744,8 @@ TAFlowEvent* EmmaModule::Analyze(TARunInfo* runinfo, TMEvent* event, TAFlags* fl
       }
    }
 
-   /*    {
-         TMBank* b = event->FindBank("AAAA");
-
-         if (b) {
-         int bklen = b->data_size;
-         const char* bkptr = event->GetBankData(b);
-
-         if (bkptr) {
-         //printf("EMMA ADC, pointer: %p, len %d\n", bkptr, bklen);
-
-         Alpha16Packet *ap = new Alpha16Packet();
-         ap->Unpack(bkptr, bklen);
-         //ap->Print();
-
-         Alpha16Waveform *aw = new Alpha16Waveform();
-         aw->Unpack(bkptr, bklen);
-
-         if (ap->channelId == 0) {
-         printf("EMMA ADC, timestamp %d, channel 0\n", ap->eventTimestamp);
-
-         double adc_offset = 0;
-
-         if (runinfo->fRunNo == 73)
-         adc_offset = -166696*800;
-
-         if (runinfo->fRunNo == 84)
-         adc_offset = -166696*800;
-
-         if (runinfo->fRunNo == 112) { // TDC sn 364629, ADC sn 1459242/364810
-         //adc_offset = (-2067919-1056035)*800;
-         // TDC 1142, ADC 6614/1653 -> diff
-
-         adc_offset = (1973667-34439772+259169+1973667)*800.0; // TDC 581940, ADC 2327722/581930
-         }
-
-         const double adc_clk = 9.9987; //10.0;
-         static int old_ts = 0;
-         double xts = ap->eventTimestamp*adc_clk + adc_offset;
-
-         printf("EMMA ADC sn %d %d, delta %5d, ts %d\n", event->serial_number, event->serial_number/4, (int)(((ap->eventTimestamp - old_ts)*adc_clk)/800.0), (int)(xts/800.0));
-         old_ts = ap->eventTimestamp;
-
-         if (0 && runinfo->fRoot->fgApp) {
-         TCanvas *c = new TCanvas();
-         c->cd();
-         TH1D* hw = new TH1D("adc0", "adc0", ap->nsamples, 0, ap->nsamples);
-         for (int i=0; i<ap->nsamples; i++)
-         hw->SetBinContent(i+1, (*aw)[i]);
-         hw->Draw();
-         c->Modified();
-         c->Draw();
-         }
-         }
-   */
-   /*               if (ap->channelId == 1) {
-                    printf("EMMA ADC, timestamp %d, channel 1\n", ap->eventTimestamp);
-
-                    static TH1D* hw = NULL;
-                    if (!hw)
-                    hw = new TH1D("adc1", "adc1", ap->nsamples, 0, ap->nsamples);
-                    for (int i=0; i<ap->nsamples; i++)
-                    hw->SetBinContent(i+1, (*aw)[i]);
-                    double SiEnergy = hw->GetMaximum();
-                    if (SiEnergy < 0 ) SiEnergy = -1;
-                    UpdateSiEnergyRawHist(SiEnergy);
-
-                    if (runinfo->fRoot->fgApp) {
-                    static TCanvas *c = NULL;
-                    if (!c)
-                    c = new TCanvas();
-                    c->Clear();
-                    c->cd();
-                    hw->SetMinimum(-12000);
-                    hw->SetMaximum(12000);
-                    hw->Draw();
-                    c->Modified();
-                    c->Draw();
-                    c->Update();
-
-                    if (runinfo->fRoot->fgApp)
-                    runinfo->fRoot->fgApp->Run(kTRUE);
-                    }
-                    }
-
-                    delete ap;
-                    delete aw;
-                    }
-                    }
-                    }
-   */
+   // Read MADC Midas Bank
+  
    {
       TMBank* b = event->FindBank("MADC");
 
