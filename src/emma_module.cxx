@@ -172,6 +172,7 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
       hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy (PID1)",512,-1,2047,512,-1,2047);
       hSiliconAnodeEnergy->SetXTitle("Silicon Energy (chan)");
       hSiliconAnodeEnergy->SetYTitle("Anode Energy (chan)");
+      hSiliconAnodeEnergy->GetYaxis()->SetTitleOffset(1.3);
    }
 
    {
@@ -179,6 +180,7 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
       hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF (PID2)",300,1200,2400,512,-1,2047);
       hAnodeEnergyRFTOF->SetXTitle("RF-TOF (ns)");
       hAnodeEnergyRFTOF->SetYTitle("Anode Energy (chan)");
+      hAnodeEnergyRFTOF->GetYaxis()->SetTitleOffset(1.3);
    }
 
    {
