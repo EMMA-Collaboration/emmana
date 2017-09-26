@@ -614,7 +614,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas2DPositionRFTOFGated;
       c1->Clear();
-      h2DPositionAnodeGated->Draw("colz");
+      h2DPositionRFTOFGated->Draw("colz");
       c1->Modified();
       c1->Update();
    }
