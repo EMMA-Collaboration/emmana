@@ -39,21 +39,21 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    // Initialize TDC histograms
    {
 
-   for (int i=0; i<64; i++) {
-      char title[256];
-      sprintf(title, "TDC_%d", i);
-      fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
-   }
+      for (int i=0; i<64; i++) {
+         char title[256];
+         sprintf(title, "TDC_%d", i);
+         fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
+      }
 
    }
    // Initialize ADC histograms
    {
 
-   for (int i=0; i<32; i++) {
-      char title[256];
-      sprintf(title, "ADC_%d", i);
-      fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
-   }
+      for (int i=0; i<32; i++) {
+         char title[256];
+         sprintf(title, "ADC_%d", i);
+         fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
+      }
 
    }
    // initialize x_y_sum histogram
@@ -71,11 +71,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    // initialize 1D position histogram
    {
-            h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
-            h1DPosition[0]->SetXTitle("X Position (mm)");
+      h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
+      h1DPosition[0]->SetXTitle("X Position (mm)");
 
-            h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
-            h1DPosition[1]->SetXTitle("Y Position (mm)");
+      h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
+      h1DPosition[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -88,11 +88,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    {
       // initialize 1D position histograms (Silicon Gated)
 
-            h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
-            h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
+      h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
+      h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
 
-            h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
-            h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
+      h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
+      h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -105,11 +105,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    {
       // initialize 1D position histograms (Anode Gated)
 
-            h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
-            h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
+      h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
+      h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
 
-            h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
-            h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
+      h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
+      h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
 
    }
 
@@ -122,11 +122,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (RFTOF Gated)
-            h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
-            h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
+      h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
+      h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
 
-            h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
-            h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
+      h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
+      h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -138,11 +138,11 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (PID2 Gated)
-            h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
-            h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
+      h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
+      h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
 
-            h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
-            h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
+      h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
+      h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
    }
 
    {
@@ -213,35 +213,35 @@ void EmmaModule::ResetHistograms()
       fHAdcRaw[i]->Reset();
    }
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       hSum[i]->Reset();
    }
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       h1DPosition[i]->Reset();
    }
 
    h2DPosition->Reset();
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       h1DPositionSiliconGated[i]->Reset();
    }
 
    h2DPositionSiliconGated->Reset();
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       h1DPositionAnodeGated[i]->Reset();
    }
 
    h2DPositionAnodeGated->Reset();
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       h1DPositionRFTOFGated[i]->Reset();
    }
 
    h2DPositionRFTOFGated->Reset();
 
-  for (int i=0; i<2; i++) {
+   for (int i=0; i<2; i++) {
       h1DPositionPID2Gated[i]->Reset();
    }
 
@@ -293,7 +293,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
 
    printf("tscheck: ADC %.0f, TDC %.0f\n", adc_dt, tdc_dt);
 
-   std::vector<double> earliest_times(64,999999);
+   std::vector<double> earliest_times(64,MAX_TIME);
    std::vector<double> counts(64,0);
 
    Int_t tdchit = 0; // for TDC
@@ -358,7 +358,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    }
 
    // Get earliest time for anode (if more than one)
-   anode = 999999.0;
+   anode = MAX_TIME.0;
 
    for (int j=0; j<3; j++) {
       if (earliest_times[j*4] < anode)
@@ -373,27 +373,27 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    yt = earliest_times[20];
    yb = earliest_times[24];
    trig = earliest_times[28];
-/*
-   multi_at = counts[0];
-   multi_am = counts[4];
-   multi_ab = counts[8];
-   multi_xr = counts[12];
-   multi_xl = counts[16];
-   multi_yt = counts[20];
-   multi_yb = counts[24];
-   multi_rf = counts[32];
-*/
-  for (int i=0; i<8; i++) {
+   /*
+     multi_at = counts[0];
+     multi_am = counts[4];
+     multi_ab = counts[8];
+     multi_xr = counts[12];
+     multi_xl = counts[16];
+     multi_yt = counts[20];
+     multi_yb = counts[24];
+     multi_rf = counts[32];
+   */
+   for (int i=0; i<8; i++) {
 
-   hMulti[i]->Fill(counts[i*4]);
+      hMulti[i]->Fill(counts[i*4]);
 
-  }
+   }
 
    xsum = xl + xr - 2*anode;
    xdiff = (xl + xloffset) - (xr + xroffset);
    xpos = 80*(xdiff/xsum);
 
-   if( xl<999999 && xr<999999 ){
+   if( xl<MAX_TIME && xr<MAX_TIME ){
       hSum[0]->Fill(xsum);
       h1DPosition[0]->Fill(xpos);
    }
@@ -402,12 +402,12 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    ydiff = (yb + yboffset) - (yt + ytoffset);
    ypos = 30*(ydiff/ysum);
 
-   if( yt<999999 && yb<999999 ){
+   if( yt<MAX_TIME && yb<MAX_TIME ){
       hSum[1]->Fill(ysum);
       h1DPosition[1]->Fill(ypos);
    }
 
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 ){
+   if ( xr<MAX_TIME && xl<MAX_TIME && yb<MAX_TIME && yt<MAX_TIME ){
       h2DPosition->Fill(xpos,ypos);
    }
 
@@ -453,48 +453,48 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    hSiliconAnodeEnergy->Fill(Sienergy,AnodeEnergy);
    hAnodeEnergyRFTOF->Fill(rft,AnodeEnergy);
 
-   if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
+   if( xl < MAX_TIME && xr < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high){
       h1DPositionSiliconGated[0]->Fill(xpos);
    }
 
-   if( yt<999999 && yb<999999 && Sienergy>800 && Sienergy<1100){
+   if( yt < MAX_TIME && yb < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high){
       h1DPositionSiliconGated[1]->Fill(ypos);
    }
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && Sienergy>800 && Sienergy<1100 ) {
-     h2DPositionSiliconGated->Fill(xpos,ypos);
+   if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high ) {
+      h2DPositionSiliconGated->Fill(xpos,ypos);
    }
 
-   if( xl<999999 && xr<999999 && AnodeEnergy>1100 && AnodeEnergy<1300){
+   if( xl < MAX_TIME && xr < MAX_TIME && AnodeEnergy > An_E_low && An_E_high){
       h1DPositionAnodeGated[0]->Fill(xpos);
    }
 
-   if( yt<999999 && yb<999999 && AnodeEnergy>1100 && AnodeEnergy<1300){
+   if( yt < MAX_TIME && yb < MAX_TIME && AnodeEnergy > An_E_low && An_E_high){
       h1DPositionAnodeGated[1]->Fill(ypos);
    }
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && AnodeEnergy>1100 && AnodeEnergy<1300 ) {
-     h2DPositionAnodeGated->Fill(xpos,ypos);
+   if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && AnodeEnergy > An_E_low && An_E_high ) {
+      h2DPositionAnodeGated->Fill(xpos,ypos);
    }
 
-   if( xl<999999 && xr<999999 && rft>1900 && rft<2200){
+   if( xl < MAX_TIME && xr < MAX_TIME && rft > rft_low && rft < rft_high){
       h1DPositionRFTOFGated[0]->Fill(xpos);
    }
 
-   if( yt<999999 && yb<999999 && rft>1900 && rft<2200){
+   if( yt < MAX_TIME && yb < MAX_TIME && rft > rft_low && rft < rft_high){
       h1DPositionRFTOFGated[1]->Fill(ypos);
    }
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && rft>1900 && rft<2200 ) {
-     h2DPositionRFTOFGated->Fill(xpos,ypos);
+   if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && rft > rft_low && rft < rft_high ) {
+      h2DPositionRFTOFGated->Fill(xpos,ypos);
    }
 
-   if( xl<999999 && xr<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300 ){
+   if( xl < MAX_TIME && xr < MAX_TIME && rft > rft_low && rft < rft_high && AnodeEnergy > An_E_low && An_E_high ){
       h1DPositionPID2Gated[0]->Fill(xpos);
    }
 
-   if( yt<999999 && yb<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300 ){
+   if( yt < MAX_TIME && yb < MAX_TIME && rft > rft_low && rft < rft_high && AnodeEnergy > An_E_low && An_E_high ){
       h1DPositionPID2Gated[1]->Fill(ypos);
    }
-   if ( xr<999999 && xl<999999 && yb<999999 && yt<999999 && rft>1900 && rft<2200 && AnodeEnergy>1100 && AnodeEnergy<1300  ) {
-     h2DPositionPID2Gated->Fill(xpos,ypos);
+   if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && rft > rft_low && rft < rft_high && AnodeEnergy > An_E_low && An_E_high  ) {
+      h2DPositionPID2Gated->Fill(xpos,ypos);
    }
 
    t1->Fill();
@@ -520,17 +520,17 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
    // Plot 1D Position
    {
-        TCanvas* c1 = fCanvas1DPosition;
-        c1->Clear();
-//	c1->Divide(1,2);
+      TCanvas* c1 = fCanvas1DPosition;
+      c1->Clear();
+      //	c1->Divide(1,2);
 
-        c1->cd(1);
-        h1DPosition[0]->Draw();
-//	c1->cd(2);
-//        h1DPosition[1]->Draw();
+      c1->cd(1);
+      h1DPosition[0]->Draw();
+      //	c1->cd(2);
+      //        h1DPosition[1]->Draw();
 
-        c1->Modified();
-        c1->Update();
+      c1->Modified();
+      c1->Update();
    }
    // Plot 2D Position
    {
@@ -547,7 +547,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
-          h1DPositionSiliconGated[i]->Draw();
+         h1DPositionSiliconGated[i]->Draw();
       }
       c1->Modified();
       c1->Update();
@@ -566,7 +566,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       fCanvas1DPositionAnodeGated->Divide(1,2);
       for(int i = 0; i < 2; i++){
          fCanvas1DPositionAnodeGated->cd(1+i);
-          h1DPositionAnodeGated[i]->Draw();
+         h1DPositionAnodeGated[i]->Draw();
       }
       fCanvas1DPositionAnodeGated->Modified();
       fCanvas1DPositionAnodeGated->Update();
@@ -586,7 +586,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
-          h1DPositionRFTOFGated[i]->Draw();
+         h1DPositionRFTOFGated[i]->Draw();
       }
       c1->Modified();
       c1->Update();
@@ -606,7 +606,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Divide(1,2);
       for(int i = 0; i < 2; i++){
          c1->cd(1+i);
-          h1DPositionPID2Gated[i]->Draw();
+         h1DPositionPID2Gated[i]->Draw();
       }
       c1->Modified();
       c1->Update();
@@ -666,7 +666,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
 
       for(int i = 0; i < 8; i++){
          c1->cd(1+i);
-          hMulti[i]->Draw();
+         hMulti[i]->Draw();
       }
 
       c1->Modified();
