@@ -81,9 +81,9 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    // initialize 1D position histogram
    h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
-   // h1DPosition[0]->SetXTitle("X Position (mm)");
+   h1DPosition[0]->SetXTitle("X Position (mm)");
    h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
-   // h1DPosition[1]->SetXTitle("Y Position (mm)");
+   h1DPosition[1]->SetXTitle("Y Position (mm)");
 
    // initialize 2D position histogram
    h2DPosition = new TH2D("h2DPosition","2D Position",166,-83,83,66,-33,33);
