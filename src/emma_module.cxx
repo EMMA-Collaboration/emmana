@@ -363,7 +363,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    }
 
    // Get earliest time for anode (if more than one)
-   anode = MAX_TIME.0;
+   anode = MAX_TIME;
 
    for (int j=0; j<3; j++) {
       if (earliest_times[j*4] < anode)

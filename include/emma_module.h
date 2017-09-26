@@ -24,6 +24,15 @@
 
 #define DELETE(p) if (p) { delete(p); (p)=NULL; }
 
+static const Double_t MAX_TIME  = 999999;
+static const Double_t Si_E_low  = 800;
+static const Double_t Si_E_high = 1100;
+static const Double_t An_E_low  = 1100;
+static const Double_t An_E_high = 1300;
+static const Double_t rft_low   = 1900;
+static const Double_t rft_high  = 2200;
+
+
 struct EmmaConfig {
    bool fVerboseV1190 = false;
    bool fVerboseMesadc32 = false;
@@ -33,15 +42,6 @@ class EmmaModule: public TARunObject {
 public:
    EmmaConfig* fConfig = NULL;
    int fCounter;
-
-public:
-   static const Double_t MAX_TIME  = 999999;
-   static const Double_t Si_E_low  = 800;
-   static const Double_t Si_E_high = 1100;
-   static const Double_t An_E_low  = 1100;
-   static const Double_t An_E_high = 1300;
-   static const Double_t rft_low   = 1900;
-   static const Double_t rft_high  = 2200;
 
 public:
    EmmaModule(TARunInfo* runinfo, EmmaConfig* config);
