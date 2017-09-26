@@ -32,36 +32,10 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fCanvasMulti = new TCanvas("Multiplicity");
 
    // initialize histograms
-
    ct = 0;
    char name[100];
 
-   // Initialize TDC histograms
-   {
-      for (int i=0; i<64; i++) {
-         char title[256];
-         sprintf(title, "TDC_%d", i);
-         fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
-      }
-   }
-   // Initialize ADC histograms
-   {
-      for (int i=0; i<32; i++) {
-         char title[256];
-         sprintf(title, "ADC_%d", i);
-         fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
-      }
-   }
-
-   {
-      const char* title[] = { "Anode Top", "Anode Middle", "Anode Bottom","Focal Plane Silicon","Left SSB","Right SSB" };
-      for (int i=0; i<6; i++) {
-         sprintf(name,"hADCused_%i",i);
-         fHAdcUsed[i] = new TH1D(name, title[i], 1920, 1, 1921);
-      }
-   }
-   // initialize x_y_sum histogram
-   {
+   {// initialize x_y_sum histogram
       const char* title[] = {"XR + XL", "YT + YB"};
       for(int i = 0; i < 2; i++){
          sprintf(name,"hsum_%i",i);
@@ -73,114 +47,111 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
          hSum[i]->SetXTitle("Time Sums (chan)");
       }
    }
-   // initialize 1D position histogram
-   {
-      h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
-      h1DPosition[0]->SetXTitle("X Position (mm)");
-      h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
-      h1DPosition[1]->SetXTitle("Y Position (mm)");
+
+   {// Initialize Anode histograms
+      const char* title[] = { "Anode Top", "Anode Middle", "Anode Bottom","Focal Plane Silicon","Left SSB","Right SSB" };
+      for (int i=0; i<6; i++) {
+         sprintf(name,"hADCused_%i",i);
+         fHAdcUsed[i] = new TH1D(name, title[i], 1920, 1, 1921);
+      }
    }
 
-   {
-      // initialize 2D position histogram
-      h2DPosition = new TH2D("h2DPosition","2D Position",166,-83,83,66,-33,33);
-      h2DPosition->SetXTitle("X Position (mm)");
-      h2DPosition->SetYTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 1D position histograms (Silicon Gated)
-      h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
-      h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
-      h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
-      h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 2D position histogram (Silicon Gated)
-      h2DPositionSiliconGated = new TH2D("h2DPositionSiliconGated","2D Position Silicon Gated",166,-83,83,66,-33,33);
-      h2DPositionSiliconGated->SetXTitle("X Position (mm)");
-      h2DPositionSiliconGated->SetYTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 1D position histograms (Anode Gated)
-      h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
-      h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
-      h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
-      h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 2D position histogram (Anode Gated)
-      h2DPositionAnodeGated = new TH2D("h2DPositionAnodeGated","2D Position Anode Gated",166,-83,83,66,-33,33);
-      h2DPositionAnodeGated->SetXTitle("X Position (mm)");
-      h2DPositionAnodeGated->SetYTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 1D position histograms (RFTOF Gated)
-      h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
-      h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
-      h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
-      h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 2D position histogram (RFTOF Gated)
-      h2DPositionRFTOFGated = new TH2D("h2DPositionRFTOFGated","2D Position RF-TOF Gated",166,-83,83,66,-33,33);
-      h2DPositionRFTOFGated->SetXTitle("X Position (mm)");
-      h2DPositionRFTOFGated->SetYTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 1D position histograms (PID2 Gated)
-      h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
-      h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
-      h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
-      h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize 2D position histogram (PID2 Gated)
-      h2DPositionPID2Gated = new TH2D("h2DPositionPID2Gated","2D Position PID2 Gated",166,-83,83,66,-33,33);
-      h2DPositionPID2Gated->SetXTitle("X Position (mm)");
-      h2DPositionPID2Gated->SetYTitle("Y Position (mm)");
-   }
-
-   {
-      // initialize rftof histogram
-      hrft = new TH1D("hrft","Corrected RF-TOF",200,1200,2400);
-   }
-
-   {
-      // initialize anode total energy histogram
-      hAnodeEnergy = new TH1D("hAnodeEnergy","Total Anode Energy",511,1,2048);
-   }
-   {
-      // initialize first PID histogram
-      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy (PID1)",512,-1,2047,512,-1,2047);
-      hSiliconAnodeEnergy->SetXTitle("Silicon Energy (chan)");
-      hSiliconAnodeEnergy->SetYTitle("Anode Energy (chan)");
-      hSiliconAnodeEnergy->GetYaxis()->SetTitleOffset(1.3);
-   }
-
-   {
-      // initialize second PID histogram
-      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF (PID2)",300,1200,2400,512,-1,2047);
-      hAnodeEnergyRFTOF->SetXTitle("RF-TOF (ns)");
-      hAnodeEnergyRFTOF->SetYTitle("Anode Energy (chan)");
-      hAnodeEnergyRFTOF->GetYaxis()->SetTitleOffset(1.3);
-   }
-
-   {
-      // initialize multiplicity histograms
+   {// initialize multiplicity histograms
       const char* title[] = {"Anode Top", "Anode Middle", "Anode Bottom", "RF" , "Cathode Left", "Cathode Right", "Cathode Top", "Cathode Botttom" };
       for(int i = 0; i < 8; i++){
          sprintf(name,"hMulti_%i",i);
          hMulti[i] = new TH1D(name,title[i],20,0,20);
       }
    }
+
+
+   // Initialize TDC histograms
+   for (int i=0; i<64; i++) {
+      char title[256];
+      sprintf(title, "TDC_%d", i);
+      fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
+   }
+
+   // Initialize ADC histograms
+   for (int i=0; i<32; i++) {
+      char title[256];
+      sprintf(title, "ADC_%d", i);
+      fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
+   }
+
+   // initialize 1D position histogram
+   h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
+   h1DPosition[0]->SetXTitle("X Position (mm)");
+   h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
+   h1DPosition[1]->SetXTitle("Y Position (mm)");
+
+   // initialize 2D position histogram
+   h2DPosition = new TH2D("h2DPosition","2D Position",166,-83,83,66,-33,33);
+   h2DPosition->SetXTitle("X Position (mm)");
+   h2DPosition->SetYTitle("Y Position (mm)");
+
+   // initialize 1D position histograms (Silicon Gated)
+   h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
+   h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
+   h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
+   h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
+
+   // initialize 2D position histogram (Silicon Gated)
+   h2DPositionSiliconGated = new TH2D("h2DPositionSiliconGated","2D Position Silicon Gated",166,-83,83,66,-33,33);
+   h2DPositionSiliconGated->SetXTitle("X Position (mm)");
+   h2DPositionSiliconGated->SetYTitle("Y Position (mm)");
+
+   // initialize 1D position histograms (Anode Gated)
+   h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
+   h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
+   h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
+   h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
+
+   // initialize 2D position histogram (Anode Gated)
+   h2DPositionAnodeGated = new TH2D("h2DPositionAnodeGated","2D Position Anode Gated",166,-83,83,66,-33,33);
+   h2DPositionAnodeGated->SetXTitle("X Position (mm)");
+   h2DPositionAnodeGated->SetYTitle("Y Position (mm)");
+
+   // initialize 1D position histograms (RFTOF Gated)
+   h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
+   h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
+   h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
+   h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
+
+   // initialize 2D position histogram (RFTOF Gated)
+   h2DPositionRFTOFGated = new TH2D("h2DPositionRFTOFGated","2D Position RF-TOF Gated",166,-83,83,66,-33,33);
+   h2DPositionRFTOFGated->SetXTitle("X Position (mm)");
+   h2DPositionRFTOFGated->SetYTitle("Y Position (mm)");
+
+   // initialize 1D position histograms (PID2 Gated)
+   h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
+   h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
+   h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
+   h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
+
+   // initialize 2D position histogram (PID2 Gated)
+   h2DPositionPID2Gated = new TH2D("h2DPositionPID2Gated","2D Position PID2 Gated",166,-83,83,66,-33,33);
+   h2DPositionPID2Gated->SetXTitle("X Position (mm)");
+   h2DPositionPID2Gated->SetYTitle("Y Position (mm)");
+
+   // initialize rftof histogram
+   hrft = new TH1D("hrft","Corrected RF-TOF",200,1200,2400);
+
+   // initialize anode total energy histogram
+   hAnodeEnergy = new TH1D("hAnodeEnergy","Total Anode Energy",511,1,2048);
+
+   // initialize first PID histogram
+   hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy (PID1)",512,-1,2047,512,-1,2047);
+   hSiliconAnodeEnergy->SetXTitle("Silicon Energy (chan)");
+   hSiliconAnodeEnergy->SetYTitle("Anode Energy (chan)");
+   hSiliconAnodeEnergy->GetYaxis()->SetTitleOffset(1.3);
+
+   // initialize second PID histogram
+   hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF (PID2)",300,1200,2400,512,-1,2047);
+   hAnodeEnergyRFTOF->SetXTitle("RF-TOF (ns)");
+   hAnodeEnergyRFTOF->SetYTitle("Anode Energy (chan)");
+   hAnodeEnergyRFTOF->GetYaxis()->SetTitleOffset(1.3);
+
 } //end EmmaModule Constructor
 
 EmmaModule::~EmmaModule()
@@ -207,6 +178,15 @@ EmmaModule::~EmmaModule()
 
 void EmmaModule::ResetHistograms()
 {
+   h2DPosition->Reset();
+   h2DPositionSiliconGated->Reset();
+   h2DPositionAnodeGated->Reset();
+   h2DPositionRFTOFGated->Reset();
+   h2DPositionPID2Gated->Reset();
+   hAnodeEnergy->Reset();
+   hSiliconAnodeEnergy->Reset();
+   hAnodeEnergyRFTOF->Reset();
+
    for (int i=0; i<64; i++) {
       fHTdcRaw[i]->Reset();
    }
@@ -218,6 +198,7 @@ void EmmaModule::ResetHistograms()
    for (int i=0; i<6; i++) {
       fHAdcUsed[i]->Reset();
    }
+
    for (int i=0; i<2; i++) {
       hSum[i]->Reset();
    }
@@ -226,37 +207,22 @@ void EmmaModule::ResetHistograms()
       h1DPosition[i]->Reset();
    }
 
-   h2DPosition->Reset();
-
    for (int i=0; i<2; i++) {
       h1DPositionSiliconGated[i]->Reset();
    }
-
-   h2DPositionSiliconGated->Reset();
 
    for (int i=0; i<2; i++) {
       h1DPositionAnodeGated[i]->Reset();
    }
 
-   h2DPositionAnodeGated->Reset();
-
    for (int i=0; i<2; i++) {
       h1DPositionRFTOFGated[i]->Reset();
    }
 
-   h2DPositionRFTOFGated->Reset();
 
    for (int i=0; i<2; i++) {
       h1DPositionPID2Gated[i]->Reset();
    }
-
-   h2DPositionPID2Gated->Reset();
-
-   hAnodeEnergy->Reset();
-
-   hSiliconAnodeEnergy->Reset();
-
-   hAnodeEnergyRFTOF->Reset();
 
    for (int i=0; i<8; i++) {
       hMulti[i]->Reset();
@@ -473,6 +439,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    if( yt < MAX_TIME && yb < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high){
       h1DPositionSiliconGated[1]->Fill(ypos);
    }
+
    if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high ) {
       h2DPositionSiliconGated->Fill(xpos,ypos);
    }
@@ -484,6 +451,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    if( yt < MAX_TIME && yb < MAX_TIME && AnodeEnergy > An_E_low && An_E_high){
       h1DPositionAnodeGated[1]->Fill(ypos);
    }
+
    if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && AnodeEnergy > An_E_low && An_E_high ) {
       h2DPositionAnodeGated->Fill(xpos,ypos);
    }
@@ -495,6 +463,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    if( yt < MAX_TIME && yb < MAX_TIME && rft > rft_low && rft < rft_high){
       h1DPositionRFTOFGated[1]->Fill(ypos);
    }
+
    if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && rft > rft_low && rft < rft_high ) {
       h2DPositionRFTOFGated->Fill(xpos,ypos);
    }
@@ -506,6 +475,7 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    if( yt < MAX_TIME && yb < MAX_TIME && rft > rft_low && rft < rft_high && AnodeEnergy > An_E_low && An_E_high ){
       h1DPositionPID2Gated[1]->Fill(ypos);
    }
+
    if ( xr < MAX_TIME && xl < MAX_TIME && yb < MAX_TIME && yt < MAX_TIME && rft > rft_low && rft < rft_high && AnodeEnergy > An_E_low && An_E_high  ) {
       h2DPositionPID2Gated->Fill(xpos,ypos);
    }
