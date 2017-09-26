@@ -169,7 +169,7 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    {
       // initialize first PID histogram
-      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Silicon vs AnodeEnergy",512,-1,2047,512,-1,2047);
+      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy",512,-1,2047,512,-1,2047);
    }
 
    {
