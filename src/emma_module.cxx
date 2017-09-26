@@ -503,31 +503,20 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
 
    // Plot 1D Position
-   // {
-   //    TCanvas* c1 = fCanvas1DPosition;
-   //    c1->Clear();
-   //    //	c1->Divide(1,2);
+   {
+      TCanvas* c1 = fCanvas1DPosition;
+      c1->Clear();
+      //	c1->Divide(1,2);
 
-   //    c1->cd(1);
-   //    h1DPosition[0]->Draw();
-   //    //	c1->cd(2);
-   //    //        h1DPosition[1]->Draw();
-
-   //    c1->Modified();
-   //    c1->Update();
-   // }
-
-   // Plot 1D Position
-   fCanvas1DPosition->Clear();
-   // fCanvas1DPosition->Divide(1,2);
-
-   // for (Int_t i=0; i<2; i++){
-   //    fCanvas1DPosition->cd(i+1);
+      c1->cd(1);
       h1DPosition[0]->Draw();
-   // }
+      //	c1->cd(2);
+      //        h1DPosition[1]->Draw();
 
-   fCanvas1DPosition->Modified();
-   fCanvas1DPosition->Update();
+      c1->Modified();
+      c1->Update();
+   }
+
 
    // Plot 2D Position
    {
