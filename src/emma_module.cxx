@@ -27,8 +27,8 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fCanvas1DPositionPID2Gated = new TCanvas("1D Position Anode-RFTOF Gated (PID2)");
    fCanvas2DPositionPID2Gated = new TCanvas("2D Position Anode-RFTOF Gated (PID2)");
    fCanvasEnergySpectra = new TCanvas("Energy Spectra");
-   fCanvasPID1 = new TCanvas("Silicon vs Anode Energy");
-   fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy");
+   fCanvasPID1 = new TCanvas("Anode vs Silicon Energy (PID1)");
+   fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy (PID2)");
    fCanvasMulti = new TCanvas("Multiplicity");
 
    // initialize histograms
@@ -38,23 +38,27 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    // Initialize TDC histograms
    {
-
       for (int i=0; i<64; i++) {
          char title[256];
          sprintf(title, "TDC_%d", i);
          fHTdcRaw[i] = new TH1D(title, title, 4000, 0, 40000);
       }
-
    }
    // Initialize ADC histograms
    {
-
       for (int i=0; i<32; i++) {
          char title[256];
          sprintf(title, "ADC_%d", i);
          fHAdcRaw[i] = new TH1D(title, title, 4096, 0, 4096);
       }
+   }
 
+   {
+      const char* title[] = { "Anode Top", "Anode Middle", "Anode Bottom","Focal Plane Silicon","Left SSB","Right SSB" };
+      for (int i=0; i<6; i++) {
+         sprintf(name,"hADCused_%i",i);
+         fHAdcUsed[i] = new TH1D(name, title[i], 1920, 1, 1921);
+      }
    }
    // initialize x_y_sum histogram
    {
@@ -73,7 +77,6 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    {
       h1DPosition[0] = new TH1D("h1DPosition_0","X Position",166,-83,83);
       h1DPosition[0]->SetXTitle("X Position (mm)");
-
       h1DPosition[1] = new TH1D("h1DPosition_1","Y Position",66,-33,33);
       h1DPosition[1]->SetXTitle("Y Position (mm)");
    }
@@ -87,10 +90,8 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (Silicon Gated)
-
       h1DPositionSiliconGated[0] = new TH1D("h1DPositionSiliconGated_0","X Position Silicon Gated",166,-83,83);
       h1DPositionSiliconGated[0]->SetXTitle("X Position (mm)");
-
       h1DPositionSiliconGated[1] = new TH1D("h1DPositionSiliconGated_1","Y Position Silicon Gated",66,-33,33);
       h1DPositionSiliconGated[1]->SetXTitle("Y Position (mm)");
    }
@@ -104,13 +105,10 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 
    {
       // initialize 1D position histograms (Anode Gated)
-
       h1DPositionAnodeGated[0] = new TH1D("h1DPositionAnodeGated_0","X Position Anode Gated",166,-83,83);
       h1DPositionAnodeGated[0]->SetXTitle("X Position (mm)");
-
       h1DPositionAnodeGated[1] = new TH1D("h1DPositionAnodeGated_1","Y Position Anode Gated",66,-33,33);
       h1DPositionAnodeGated[1]->SetXTitle("Y Position (mm)");
-
    }
 
    {
@@ -124,7 +122,6 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
       // initialize 1D position histograms (RFTOF Gated)
       h1DPositionRFTOFGated[0] = new TH1D("h1DPositionRFTOFGated_0","X Position RF-TOF Gated",166,-83,83);
       h1DPositionRFTOFGated[0]->SetXTitle("X Position (mm)");
-
       h1DPositionRFTOFGated[1] = new TH1D("h1DPositionRFTOFGated_1","Y Position RF-TOF Gated",66,-33,33);
       h1DPositionRFTOFGated[1]->SetXTitle("Y Position (mm)");
    }
@@ -140,7 +137,6 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
       // initialize 1D position histograms (PID2 Gated)
       h1DPositionPID2Gated[0] = new TH1D("h1DPositionPID2Gated_0","X Position PID2 Gated",166,-83,83);
       h1DPositionPID2Gated[0]->SetXTitle("X Position (mm)");
-
       h1DPositionPID2Gated[1] = new TH1D("h1DPositionPID2Gated_1","Y Position PID2 Gated",66,-33,33);
       h1DPositionPID2Gated[1]->SetXTitle("Y Position (mm)");
    }
@@ -163,12 +159,18 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    {
       // initialize first PID histogram
-      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Silicon vs AnodeEnergy",512,-1,2047,512,-1,2047);
+      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy (PID1)",512,-1,2047,512,-1,2047);
+      hSiliconAnodeEnergy->SetXTitle("Silicon Energy (chan)");
+      hSiliconAnodeEnergy->SetYTitle("Anode Energy (chan)");
+      hSiliconAnodeEnergy->GetYaxis()->SetTitleOffset(1.3);
    }
 
    {
       // initialize second PID histogram
-      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF",300,1200,2400,512,-1,2047);
+      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF (PID2)",300,1200,2400,512,-1,2047);
+      hAnodeEnergyRFTOF->SetXTitle("RF-TOF (ns)");
+      hAnodeEnergyRFTOF->SetYTitle("Anode Energy (chan)");
+      hAnodeEnergyRFTOF->GetYaxis()->SetTitleOffset(1.3);
    }
 
    {
@@ -213,6 +215,9 @@ void EmmaModule::ResetHistograms()
       fHAdcRaw[i]->Reset();
    }
 
+   for (int i=0; i<6; i++) {
+      fHAdcUsed[i]->Reset();
+   }
    for (int i=0; i<2; i++) {
       hSum[i]->Reset();
    }
@@ -453,6 +458,14 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    hSiliconAnodeEnergy->Fill(Sienergy,AnodeEnergy);
    hAnodeEnergyRFTOF->Fill(rft,AnodeEnergy);
 
+   fHAdcUsed[0]->Fill(ATenergy);
+   fHAdcUsed[1]->Fill(AMenergy);
+   fHAdcUsed[2]->Fill(ABenergy);
+   fHAdcUsed[3]->Fill(Sienergy);
+   fHAdcUsed[4]->Fill(sbl_ene);
+   fHAdcUsed[5]->Fill(sbr_ene);
+
+
    if( xl < MAX_TIME && xr < MAX_TIME && Sienergy > Si_E_low && Sienergy < Si_E_high){
       h1DPositionSiliconGated[0]->Fill(xpos);
    }
@@ -542,13 +555,13 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
    // Plot 1D Position Gated
    {
-      TCanvas* c1 = (TCanvas *)fCanvas1DPositionSiliconGated;
+      TCanvas* c1 = fCanvas1DPositionSiliconGated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-         h1DPositionSiliconGated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //c1->cd(1);
+      h1DPositionSiliconGated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -562,14 +575,15 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    }
    // Plot 1D Position Gated
    {
-      fCanvas1DPositionAnodeGated->Clear();
-      fCanvas1DPositionAnodeGated->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         fCanvas1DPositionAnodeGated->cd(1+i);
-         h1DPositionAnodeGated[i]->Draw();
-      }
-      fCanvas1DPositionAnodeGated->Modified();
-      fCanvas1DPositionAnodeGated->Update();
+      TCanvas* c1 = fCanvas1DPositionAnodeGated;
+      c1->Clear();
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //   c1->cd(1+i);
+      h1DPositionAnodeGated[0]->Draw();
+      //}
+      c1->Modified();
+      c1->Update();
    }
    // Plot 2D Position Gated
    {
@@ -583,11 +597,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionRFTOFGated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-         h1DPositionRFTOFGated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //c1->cd(1+i);
+      h1DPositionRFTOFGated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -595,7 +609,7 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas2DPositionRFTOFGated;
       c1->Clear();
-      h2DPositionAnodeGated->Draw("colz");
+      h2DPositionRFTOFGated->Draw("colz");
       c1->Modified();
       c1->Update();
    }
@@ -603,11 +617,11 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
    {
       TCanvas* c1 = fCanvas1DPositionPID2Gated;
       c1->Clear();
-      c1->Divide(1,2);
-      for(int i = 0; i < 2; i++){
-         c1->cd(1+i);
-         h1DPositionPID2Gated[i]->Draw();
-      }
+      //c1->Divide(1,2);
+      //for(int i = 0; i < 2; i++){
+      //   c1->cd(1+i);
+      h1DPositionPID2Gated[0]->Draw();
+      //}
       c1->Modified();
       c1->Update();
    }
@@ -627,17 +641,17 @@ void EmmaModule::PlotHistograms(TARunInfo* runinfo)
       c1->Divide(2,3);
 
       c1->cd(1);
-      fHAdcRaw[0]->Draw();
+      fHAdcUsed[0]->Draw();
       c1->cd(2);
-      fHAdcRaw[1]->Draw();
+      fHAdcUsed[1]->Draw();
       c1->cd(3);
-      fHAdcRaw[2]->Draw();
+      fHAdcUsed[2]->Draw();
       c1->cd(4);
-      fHAdcRaw[16]->Draw();
+      fHAdcUsed[3]->Draw();
       c1->cd(5);
-      fHAdcRaw[18]->Draw();
+      fHAdcUsed[4]->Draw();
       c1->cd(6);
-      fHAdcRaw[20]->Draw();
+      fHAdcUsed[5]->Draw();
 
       c1->Modified();
       c1->Update();
