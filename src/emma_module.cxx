@@ -27,8 +27,8 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    fCanvas1DPositionPID2Gated = new TCanvas("1D Position Anode-RFTOF Gated (PID2)");
    fCanvas2DPositionPID2Gated = new TCanvas("2D Position Anode-RFTOF Gated (PID2)");
    fCanvasEnergySpectra = new TCanvas("Energy Spectra");
-   fCanvasPID1 = new TCanvas("Silicon vs Anode Energy");
-   fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy");
+   fCanvasPID1 = new TCanvas("Anode vs Silicon Energy (PID1)");
+   fCanvasPID2 = new TCanvas("RFTOF vs Anode Energy (PID2)");
    fCanvasMulti = new TCanvas("Multiplicity");
 
    // initialize histograms
@@ -169,12 +169,16 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
    }
    {
       // initialize first PID histogram
-      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy",512,-1,2047,512,-1,2047);
+      hSiliconAnodeEnergy = new TH2D("hSiliconAnodeEnergy","Anode vs Silicon Energy (PID1)",512,-1,2047,512,-1,2047);
+      hSiliconAnodeEnergy->SetXTitle("Silicon Energy (chan)");
+      hSiliconAnodeEnergy->SetYTitle("Anode Energy (chan)");
    }
 
    {
       // initialize second PID histogram
-      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF",300,1200,2400,512,-1,2047);
+      hAnodeEnergyRFTOF = new TH2D("hAnodeEnergyRFTOF","AnodeEnergy vs RF-TOF (PID2)",300,1200,2400,512,-1,2047);
+      hAnodeEnergyRFTOF->SetXTitle("RF-TOF (ns)");
+      hAnodeEnergyRFTOF->SetYTitle("Anode Energy (chan)");
    }
 
    {
