@@ -25,8 +25,8 @@
 #define DELETE(p) if (p) { delete(p); (p)=NULL; }
 
 static const Double_t MAX_TIME  = 999999;
-static const Double_t Si_E_low  = 800;
-static const Double_t Si_E_high = 1100;
+static const Double_t Si_E_low  = 60;
+static const Double_t Si_E_high = 100;
 static const Double_t An_E_low  = 1100;
 static const Double_t An_E_high = 1300;
 static const Double_t rft_low   = 1900;
