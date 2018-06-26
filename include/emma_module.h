@@ -12,6 +12,7 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TH1D.h"
+#include "TH1I.h"
 #include "TH2D.h"
 #include "TProfile.h"
 #include "TMath.h"
@@ -71,6 +72,8 @@ public:
    TH2D *hAnodeEnergyRFTOF;
    TH1D *hrft;
    TH1D *hMulti[8];
+   TH1I *fHTDCtimestamp;
+   TH1I *fHADCtimestamp;
 
    TCanvas* fCanvasSums;
    TCanvas* fCanvas1DPosition;
@@ -120,6 +123,9 @@ public:
 
    Double_t rftof;
    Double_t rft;
+
+   Int_t TDCtimestamp;
+   Int_t ADCtimestamp;
 /*
    Int_t multi_at;
    Int_t multi_am;

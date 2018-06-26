@@ -191,6 +191,13 @@ EmmaModule::EmmaModule(TARunInfo* runinfo, EmmaConfig* config):
 	 hMulti[i] = new TH1D(name,title[i],20,0,20);
       }
    }
+
+   {
+     // Intialize Time Stamp Hists
+     fHTDCtimestamp = new TH1I("hTDCtimestamp","TDC time stamp",1E3,-5E8,5E8);
+     fHADCtimestamp = new TH1I("hADCtimestamp","ADC time stamp",1E2,-2E9,2E9);
+
+   }
 } //end EmmaModule Constructor
 
 EmmaModule::~EmmaModule()
@@ -476,6 +483,12 @@ void EmmaModule::UpdateHistograms(TARunInfo* runinfo, const v1190event* tdc_data
    fHAdcUsed[4]->Fill(sbl_ene);
    fHAdcUsed[5]->Fill(sbr_ene);
 
+   TDCtimestamp = tdc_data->ettt/1.25;
+   ADCtimestamp = adc_data->time_stamp;
+
+   fHTDCtimestamp->Fill(TDCtimestamp);
+   fHADCtimestamp->Fill(ADCtimestamp);
+
 
    if( xl<999999 && xr<999999 && Sienergy>800 && Sienergy<1100){
       h1DPositionSiliconGated[0]->Fill(xpos);
@@ -723,12 +736,14 @@ void EmmaModule::BeginRun(TARunInfo* runinfo)
    t1->Branch("ATenergy",&ATenergy,"ATenergy/D");
    t1->Branch("AMenergy",&AMenergy,"AMenergy/D");
    t1->Branch("ABenergy",&ABenergy,"ABenergy/D");
-   t1->Branch("PGACenergy",&AnodeEnergy,"AnodeEnergy/D");
+   t1->Branch("AnodeEnergy",&AnodeEnergy,"AnodeEnergy/D");
    t1->Branch("Sienergy",&Sienergy,"Sienergy/D");
    t1->Branch("trf",&trf,"trf/D");
    t1->Branch("trf_next",&trf_next,"trf_next/D");
    t1->Branch("sbr_ene",&sbr_ene,"sbr_ene/D");
    t1->Branch("sbl_ene",&sbl_ene,"sbl_ene/D");
+   t1->Branch("TDCtime",&TDCtimestamp,"TDCtimestamp/I");
+   t1->Branch("ADCtime",&ADCtimestamp,"ADCtimestamp/I");
 
 } //end BeginRun
 
