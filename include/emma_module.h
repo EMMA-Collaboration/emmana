@@ -94,6 +94,8 @@ public:
    Double_t AnodeEnergy;
    Double_t sbl_ene;
    Double_t sbr_ene;
+   Double_t TDCtimestamp;
+   Double_t ADCtimestamp;
 
    Double_t trig;
    Double_t trf;
@@ -113,6 +115,8 @@ public:
    TH1D *hrft;
    TH1D *hMulti[8];
    TH1D *h1DPosition[2];
+   TH1D *fHTDCtimestamp;
+   TH1D *fHADCtimestamp;
 
    TH2D *h2DPosition;
    TH2D *h2DPositionSiliconGated;
